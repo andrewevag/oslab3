@@ -40,6 +40,14 @@ ssize_t insist_write(int fd, const void *buf, size_t cnt)
 	return orig_cnt;
 }
 
+/*
+ * Arguments are commands
+ * n -> name assigns name to that user
+ * c -> channel create channel parameter channel name
+ * a -> add user to channel -channel -name
+ * s -> send message to channel \n -> msg
+ * r -> read channel request read of all the channel.
+ */
 int main(int argc, char *argv[])
 {
 	int sd, port;

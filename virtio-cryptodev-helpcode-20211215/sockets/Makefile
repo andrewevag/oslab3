@@ -27,3 +27,7 @@ socket-client: socket-client.c socket-common.h
 
 clean:
 	rm -f *.o *~ $(BINS)
+
+
+serverAN: serverAN.c socket-common.h
+	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
