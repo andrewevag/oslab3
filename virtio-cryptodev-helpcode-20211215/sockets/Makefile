@@ -12,7 +12,9 @@ CC = gcc
 CFLAGS = -Wall
 CFLAGS += -g
 # CFLAGS += -O2 -fomit-frame-pointer -finline-functions
+UTILSDIR = ANutils/
 
+INCLUDE = -I/$(UTILSDIR) 
 LIBS = 
 
 BINS = socket-server socket-client
@@ -29,5 +31,11 @@ clean:
 	rm -f *.o *~ $(BINS)
 
 
-serverAN: serverAN.c socket-common.h
-	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
+serverAN: serverAN.o linkedlist.o socket-common.h 
+	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE)  $(LIBS)
+
+serverAN.o: serverAN.c
+	$(CC) -c  $(INCLUDE) $(CFLAGS) $^ $(LIBS)
+
+linkedlist.o: $(UTILSDIR)linkedlist.c
+	$(CC) -c $(CFLAGS) $^ $(INCLUDE) $(LIBS)
