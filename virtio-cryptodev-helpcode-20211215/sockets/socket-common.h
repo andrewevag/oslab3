@@ -10,7 +10,7 @@
 #define _SOCKET_COMMON_H
 
 /* Compile-time options */
-#define TCP_PORT    35008
+#define TCP_PORT    35009
 #define TCP_BACKLOG 5
 
 #define HELLO_THERE "Hello there!"

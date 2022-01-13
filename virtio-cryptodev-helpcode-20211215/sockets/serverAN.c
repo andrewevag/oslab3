@@ -98,17 +98,67 @@ int errorcheck(int val, int targetval, char* msg)
 	}
 	return val;
 }
-int ANAFILE;
-void AN_protocol_setup()
+#define HASHTABLESIZE 4096
+typedef struct {
+	char* userlist;
+	int fd;
+} channel;
+channel* channel_costructor(char* channelname, int fd)
 {
-	//create a file to manage channel access
-	ANAFILE = errorcheck(open("ANaccess", O_CREAT | O_TRUNC | O_APPEND, S_IRUSR | S_IWUSR) < 0, 1,"failed to create the access file\n");
-	
+	channel* newitem = malloc(sizeof(channel));
+	if(newitem == NULL)
+	{
+		errorcheck(-1, -1, "failed to allocate space for new challenge");
+	}
+	newitem->userlist = channelname;
+	newitem->fd = fd;
+	return newitem;
+}
+
+void channel_destructor(channel* ch)
+{
+	free(ch->userlist); //can cause problems later.
+	free(ch);
+}
+channel* CHANNELHASH[HASHTABLESIZE];
+//hash function
+unsigned long hash( char *str)
+{ 
+    unsigned long hash = 5381;
+    int c;
+
+    while ((c = *str++))
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+    return hash % HASHTABLESIZE;
+}
+//lookup =
+channel* lookup(char* key)
+{
+	return CHANNELHASH[hash(key)];
 
 }
 
-int AN_protocol_execute(char** words,int numofwords)
+void update(char* key, channel* val)
 {
+	CHANNELHASH[hash(key)] = val;
+}
+
+
+void AN_protocol_setup()
+{
+	//create a file to manage channel access
+	for(int i = 0; i < HASHTABLESIZE; i++) CHANNELHASH[i] = NULL;	
+	
+}
+
+#define USERNAME 0
+#define COMMAND 1
+#define ARGUMENT 2
+#define EXTRAUSERNAME 3
+int AN_protocol_execute(int sock, char** words,int numofwords)
+{
+	char buf[2*MAX_MSIZE];
 	printf("got here with %d\n", numofwords);
 	if(numofwords < 4)
 	{
@@ -118,15 +168,66 @@ int AN_protocol_execute(char** words,int numofwords)
 	if(strcmp(words[1], "C") == 0)
 	{
 		//create file channel and add user as andreas
-		insist_write(ANAFILE, )
+		if(lookup(words[ARGUMENT]) == NULL)
+		{
+			//allocate space for userlist for the new channel.
+			char* tempval = malloc(sizeof(char)*MAX_MSIZE);
+			if(tempval == NULL)
+				errorcheck(-1, -1, "malloc failed");
+			sprintf(tempval, "%s ", words[USERNAME]);
+
+
+			char filename[MAX_MSIZE];
+			sprintf(filename, "AN/%s", words[ARGUMENT]);
+			int fd = errorcheck(open(filename, O_CREAT | O_TRUNC | O_APPEND, S_IRUSR | S_IWUSR), -1, "failed to create channel file");
+
+			update(words[ARGUMENT], channel_costructor(tempval, fd));
+
+			printf("Channel created %s with user %s\n", words[ARGUMENT], words[USERNAME]);
+			errorcheck(insist_write(sock, "Channel created\n", sizeof("Channel created\n")) < 0, 1, "failed to write to client");
+
+			
+
+		}
+		else{
+			printf("channel already exists\n");
+			errorcheck(insist_write(sock, "channel already exists\n", sizeof("channel already exists\n"))< 0, 1, "failed to write to client");
+		}
+		
 	}
 	else if(strcmp(words[1], "A") == 0)
 	{
-
+		if(numofwords < 5)
+			goto exitfault;
+		//user 
+		//add channel user |
+		channel* ch = lookup(words[ARGUMENT]);
+		char* userlist = ch->userlist;
+		if(ch == NULL)
+		{
+			printf("channel does not exist\n");
+			errorcheck(insist_write(sock, "channel does not exist\n", sizeof("channel does not exist\n")) < 0, 1, "failed to write to client");
+		}
+		else
+		{
+			//CHANNEL EXISTS.
+			if(strstr(userlist, words[USERNAME]) == NULL)
+			{
+				printf("user %s does not have access to write to channel %s \n Those who have are %s\n",words[USERNAME],words[ARGUMENT],userlist);
+				sprintf(buf, "user %s does not have access to write to channel %s \n",words[USERNAME],words[ARGUMENT]);
+				insist_write(sock, buf, strlen(buf));
+				goto exitfault;
+			}
+			//can check for access
+			strcat(userlist, words[EXTRAUSERNAME]);
+			strcat(userlist, " ");
+			printf("added user to userlist %s\n", words[EXTRAUSERNAME]);
+			errorcheck(insist_write(sock, "added user successfully\n", sizeof("added user successfully\n")) < 0, 1, "failed to write to client");
+		}
 	}
 	else if(strcmp(words[1], "S") == 0)
 	{
-
+		
 	}
 	else if(strcmp(words[1], "R") == 0)
 	{
@@ -134,6 +235,7 @@ int AN_protocol_execute(char** words,int numofwords)
 	}
 	else
 	{
+exitfault:
 		printf("wrong command\n");
 		return -1;
 	}
@@ -152,7 +254,7 @@ int main(void)
 	ssize_t n;
 	socklen_t len;
 	struct sockaddr_in sa;
-	
+	AN_protocol_setup();
 	/* Make sure a broken connection doesn't kill us */
 	signal(SIGPIPE, SIG_IGN);
 
@@ -229,11 +331,9 @@ int main(void)
 			int numofwords = splitToWords(buf, strlen(buf), words, MAX_MSIZE);
 
 			//IMPLEMENTING PROTOCOL...
-			AN_protocol_execute(words, numofwords);
+			AN_protocol_execute(newsd,words, numofwords);
 
 			
-			
-			goto exit;
 			// toupper_buf(buf, n);
 			// if (insist_write(newsd, buf, n) != n) {
 			// 	perror("write to remote peer failed");
