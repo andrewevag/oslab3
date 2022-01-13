@@ -17,7 +17,8 @@ UTILSDIR = ANutils/
 INCLUDE = -I/$(UTILSDIR) 
 LIBS = 
 
-BINS = socket-server socket-client
+# BINS = socket-server socket-client
+BINS = serverAN
 
 all: $(BINS)
 
@@ -31,11 +32,20 @@ clean:
 	rm -f *.o *~ $(BINS)
 
 
-serverAN: serverAN.o linkedlist.o socket-common.h 
+serverAN: serverAN.o linkedlist.o message.o user.o channel.o 
 	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE)  $(LIBS)
 
 serverAN.o: serverAN.c
 	$(CC) -c  $(INCLUDE) $(CFLAGS) $^ $(LIBS)
 
 linkedlist.o: $(UTILSDIR)linkedlist.c
+	$(CC) -c $(CFLAGS) $^ $(INCLUDE) $(LIBS)
+
+message.o: $(UTILSDIR)message.c
+	$(CC) -c $(CFLAGS) $^ $(INCLUDE) $(LIBS)
+
+user.o: $(UTILSDIR)user.c
+	$(CC) -c $(CFLAGS) $^ $(INCLUDE) $(LIBS)
+
+channel.o: $(UTILSDIR)channel.c
 	$(CC) -c $(CFLAGS) $^ $(INCLUDE) $(LIBS)

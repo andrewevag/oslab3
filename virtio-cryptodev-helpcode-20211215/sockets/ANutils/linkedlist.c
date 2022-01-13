@@ -14,6 +14,10 @@ list* tail(list* l){
 
 list* cons(void* data, list* l){
     list* newList = malloc(sizeof(list));
+    if(newList == NULL)
+    {
+        errorcheck(-1, -1, "failed to allocate new memory for cons");
+    }
     newList->data = data;
     newList->next = l;
     return newList;

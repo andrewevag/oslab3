@@ -21,6 +21,7 @@ message* message_constructor(int id, char* text, user* usfrom)
 	nm->id=id;
 	nm->text = nt;
 	nm->userfrom=usfrom;
+	return nm;
 }
 
 

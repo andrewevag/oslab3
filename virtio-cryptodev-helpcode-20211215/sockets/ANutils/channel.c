@@ -1,7 +1,6 @@
 #include "channel.h"
 #include <stdlib.h>
 #include <string.h>
-#include "user.h"
 #include "message.h"
 
 
@@ -21,8 +20,8 @@ channel* channel_costructor(char* name, list* userlist, list* messagelist)
 
 void channel_destructor(channel* ch)
 {
-	deleteList(ch->messagelist, message_destructor);
-	deleteList(ch->userlist, user_destructor);
+	deleteList(ch->messagelist, (void (*)(void*))message_destructor);
+	deleteList(ch->userlist, (void (*)(void*))user_destructor);
 	free(ch->name);
 	free(ch);
 }

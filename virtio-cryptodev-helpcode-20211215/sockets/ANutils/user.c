@@ -1,7 +1,7 @@
 #include "user.h"
 #include "linkedlist.h"
 #include <stdlib.h>
-
+#include <string.h>
 
 user* user_constructor(char* username, char* password)
 {
@@ -19,7 +19,7 @@ user* user_constructor(char* username, char* password)
 	userp = memcpy(userp, password, strlen(password)+1);
 	nu->username=usern;
 	nu->password=userp;
-
+	return nu;
 }
 
 void user_destructor(user* u)
