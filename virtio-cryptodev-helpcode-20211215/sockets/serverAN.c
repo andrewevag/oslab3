@@ -26,6 +26,7 @@
 #include "ANutils/linkedlist.h"
 #include "ANutils/channel.h"
 #include "ANutils/user.h"
+#include "ANutils/message.h"
 #define MAX_MSIZE 4096
 
 
@@ -88,9 +89,9 @@ int splitToWords(char* str, int length,char** words, int maxwords){
  * Arguments are commands
  * REQUESTS TO SERVER
  * <username> C <channelname> | 
- * <username> A <channel> <user> <password> |
+ * <username> A <password> <channel> <user> |
  * <username> CU <password> |
- * <username> S <password> <channel> <msg> |
+ * <username> S <password> <channel> <msg> =<...msg> |
  * <username> R <password> <channel>  <msgnumber> |
  * 
  * 
@@ -99,6 +100,7 @@ int splitToWords(char* str, int length,char** words, int maxwords){
  * REQUEST FAILED |
  * MSG <channel name> <number>
  * <...> |
+ * NO MORE MESSAGES
  */
 list* userlist;
 list* channellist;
@@ -108,12 +110,14 @@ void AN_protocol_setup()
 	channellist = emptyList;
 }
 
+
 bool validateUser(char* usrname, char* pwd)
 {
+	printf("@validate with %s and %s\n", usrname, pwd);
 	forEachList(userlist, i)
 	{
 		user* curruser = getData(i);
-		if((strcmp(curruser->username, usrname) == 0) && (strcmp(curruser->password, pwd)))
+		if((strcmp(curruser->username, usrname) == 0) && (strcmp(curruser->password, pwd) == 0))
 		{
 			return true;
 		}
@@ -121,13 +125,59 @@ bool validateUser(char* usrname, char* pwd)
 	return false;
 }
 
+channel* checkChannelExistance(char *name)
+{
+	channel* req = NULL;
+	forEachList(channellist, i)
+	{
+		channel* ch = getData(i);
+		if(strcmp(ch->name, name) == 0)
+			req = ch;
+	}
+	return req;
+}
+
+bool checkAccessToChannel(channel* req, char* usrname)
+{
+	bool flag = false;
+	forEachList(req->userlist, i)
+	{
+		user* u = getData(i);
+		if(strcmp(u->username, usrname) == 0)
+			flag = true;
+	}
+	return flag;
+}
+
+bool isNumber(char* s)
+{
+    for (int i = 0; s[i] != '\0'; i++)
+    {
+        if (!isdigit(s[i]))
+              return false;
+    }
+    return true;
+}
+
 #define USERNAME 0
 #define COMMAND 1
 #define ARGUMENT 2
-#define EXTRAUSERNAME 3
+#define EXTRAUSERNAME 4
+#define CHANNELPARAM 3
 #define PASSWORD 2
+#define MSGNUM 4
 int AN_protocol_execute(int sock, char* original_msg ,char** words,int numofwords)
 {
+	for(int i =0 ; i< sizeof(original_msg); i++)
+	{
+		if(original_msg[i] == '|')
+		{
+			if(i < sizeof(original_msg) -1)
+				original_msg[++i] = 0;
+			else goto exitfault;
+			break;
+		}
+	}
 	char buf[2*MAX_MSIZE];
 	printf("got here with %d\n", numofwords);
 	if(numofwords < 4)
@@ -163,22 +213,140 @@ int AN_protocol_execute(int sock, char* original_msg ,char** words,int numofword
 	}
 	else if(strcmp(words[1], "A") == 0)
 	{
-		if(numofwords < 7)
+		if(numofwords < 6)
 			goto exitfault;
 		// //user 
 		// //add channel user |
 		//validate user. 
+		if(!validateUser(words[USERNAME], words[PASSWORD]))
+		{
+			printf("failed to validate\n");
+			const_safe_write(sock, "REQUEST FAILED |");
+			goto exitfault;
+		}
 		//check that the channel exists.
+		
+		channel* req = checkChannelExistance(words[CHANNELPARAM]);
+		if(req == NULL){
+			const_safe_write(sock, "REQUEST FAILED |");
+			printf("channel not found requested = %s\n", words[CHANNELPARAM]);
+			goto exitfault;
+		}
 		//check that he has access to the channel.
+		bool flag = checkAccessToChannel(req, words[USERNAME]);
+		if(!flag){
+			const_safe_write(sock, "REQUEST FAILED |");
+			printf("user %s does not have access to %s\n", words[USERNAME], req->name);
+			goto exitfault;
+		}
 		//add user to the channel.
+		req->userlist = cons(user_constructor(words[EXTRAUSERNAME], ""), req->userlist);
+		const_safe_write(sock, "REQUEST DONE |");
+		printf("added user %s to %s\n", words[EXTRAUSERNAME], req->name);
 	}
 	else if(strcmp(words[1], "S") == 0)
 	{
-		
+		//as a server we receive the message here.
+		//validateUser
+		if(!validateUser(words[USERNAME], words[PASSWORD]))
+		{
+			printf("failed to validate\n");
+			const_safe_write(sock, "REQUEST FAILED |");
+			goto exitfault;
+		}
+		//checkChannelExistance
+		channel* req = checkChannelExistance(words[CHANNELPARAM]);
+		if(req == NULL)
+		{
+			const_safe_write(sock, "REQUEST FAILED |");
+			printf("channel not found requested = %s\n", words[CHANNELPARAM]);
+			goto exitfault;
+		}
+		//check user access to the channel.
+		if(!checkAccessToChannel(req, words[USERNAME]))
+		{
+			const_safe_write(sock, "REQUEST FAILED |");
+			printf("user %s does not have access to %s\n", words[USERNAME], req->name);
+			goto exitfault;
+		}
+		//add new message to the channel.
+		//now we have to keep from the original message only the portion that is after 
+		int i = 0; int len = strlen(original_msg);
+		for(i = 0 ; i < strlen(original_msg); i++)
+		{
+			if(original_msg[i] == '=')
+			{
+				i++; 
+				break;
+			}
+		}
+		memcpy(buf, (original_msg+i), len-i);
+		for(int k = len-i; k < sizeof(buf); k++) buf[k] = 0;
+		printf("buf = %s\n", buf);
+		int previousId = (req->messagelist == emptyList) ? -1 : (((message*)head(req->messagelist))->id);
+		req->messagelist = cons( message_constructor(++previousId, buf , user_constructor(words[USERNAME], "")) , req->messagelist);
+		const_safe_write(sock, "REQUEST DONE |");
+		printf("msg = %s to %s\n", (((message*)(head(req->messagelist)))->text), req->name);
+
+
 	}
 	else if(strcmp(words[1], "R") == 0)
 	{
-
+		if (numofwords < 6)
+			goto exitfault;
+		//validate user
+		if(!validateUser(words[USERNAME], words[PASSWORD]))
+		{
+			printf("failed to validate\n");
+			const_safe_write(sock, "REQUEST FAILED |");
+			goto exitfault;
+		}
+		//checkChannelExistance
+		channel* req = checkChannelExistance(words[CHANNELPARAM]);
+		if(req == NULL)
+		{
+			const_safe_write(sock, "REQUEST FAILED |");
+			printf("channel not found requested = %s\n", words[CHANNELPARAM]);
+			goto exitfault;
+		}
+		//check user access to the channel.
+		if(!checkAccessToChannel(req, words[USERNAME]))
+		{
+			const_safe_write(sock, "REQUEST FAILED |");
+			printf("user %s does not have access to %s\n", words[USERNAME], req->name);
+			goto exitfault;
+		}
+		//no we have to give all the messages that are greater or equal to the requested one.
+		//might fix to recursion in another lifetime
+		int maxid = ((message*)head(req->messagelist))->id;
+		if(!isNumber(words[MSGNUM]))
+		{
+			const_safe_write(sock, "REQUEST FAILED |");
+			printf("%s is not a number\n", words[MSGNUM]);
+			goto exitfault;
+		}
+		int id = atoi(words[MSGNUM]);
+		while(id <= maxid)
+		{
+			forEachList(req->messagelist, i)
+			{
+				message* msg = getData(i);
+				if(msg->id == id)
+				{
+					//send message id+1
+					/* MSG <channel name> <number>
+ 					 * <...> |
+					 */
+					for(int i =0 ; i< sizeof(buf) ; i++) buf[i] = 0;
+					sprintf(buf, "MSG %s %d\n%s", req->name, id, msg->text);
+					safe_write(sock, buf, strlen(buf));
+					id++;
+					break;
+				}
+			}
+			
+		}
+		const_safe_write(sock, "NO NEW MESSAGES |");
 	}
 	else
 	{
