@@ -18,7 +18,7 @@ INCLUDE = -I/$(UTILSDIR)
 LIBS = 
 
 # BINS = socket-server socket-client
-BINS = serverAN
+BINS = serverAN socket-client
 
 all: $(BINS)
 

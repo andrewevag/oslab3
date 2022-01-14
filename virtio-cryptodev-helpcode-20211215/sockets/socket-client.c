@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "Connected.\n");
 
 	/* Be careful with buffer overruns, ensure NUL-termination */
-	strncpy(buf, HELLO_THERE, sizeof(buf));
+	strncpy(buf, "andreas CU mouni | ", sizeof(buf));
 	buf[sizeof(buf) - 1] = '\0';
 
 	/* Say something... */
@@ -104,10 +104,10 @@ int main(int argc, char *argv[])
 	 * Let the remote know we're not going to write anything else.
 	 * Try removing the shutdown() call and see what happens.
 	 */
-	if (shutdown(sd, SHUT_WR) < 0) {
-		perror("shutdown");
-		exit(1);
-	}
+	// if (shutdown(sd, SHUT_WR) < 0) {
+	// 	perror("shutdown");
+	// 	exit(1);
+	// }
 
 	/* Read answer and write it to standard output */
 	for (;;) {
@@ -129,4 +129,5 @@ int main(int argc, char *argv[])
 
 	fprintf(stderr, "\nDone.\n");
 	return 0;
+	while(1);
 }
