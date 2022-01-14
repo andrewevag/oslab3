@@ -17,6 +17,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -47,6 +48,12 @@ ssize_t insist_write(int fd, const void *buf, size_t cnt)
 
 	return orig_cnt;
 }
+
+void safe_write(int fd, const void *buf, size_t cnt){
+	errorcheck(insist_write(fd, buf, cnt) <0, 1, "failed to send @safe write");
+}
+#define const_safe_write(fd, cswbuf) safe_write(fd, cswbuf, sizeof(cswbuf))
+
 
 /*
  * Arguments are commands
@@ -100,6 +107,63 @@ int main(int argc, char *argv[])
 	strncpy(buf, "andreas CU mouni | ", sizeof(buf));
 	buf[sizeof(buf) - 1] = '\0';
 
+    fd_set set;
+    FD_ZERO(&set);
+    FD_SET(STDIN_FILENO,&set);
+    FD_SET(sd,&set);
+    int maxfd = ((sd > STDIN_FILENO)?sd:STDIN_FILENO) + 1;
+
+    char stin_buf[2*MAX_MSIZE];
+    char sock_buf[2*MAX_MSIZE];
+    int readstin = 0;
+    int readsock = 0;
+    int ni,ns;
+
+    memset(stin_buf,0,sizeof(stin_buf));
+    memset(sock_buf,0,sizeof(sock_buf));
+    while(1){
+        
+        errorcheck(select(maxfd,&set,NULL,NULL,NULL),-1,"error on select\n");
+        if(FD_ISSET(STDIN_FILENO,&set)){
+            ni = read(STDIN_FILENO, stin_buf+readstin, sizeof(stin_buf));
+            readstin +=ni;
+            errorcheck(ni,-1,"read from STDIN failed\n");
+            char* cp = strchr(stin_buf,'|');
+            if(cp != NULL){
+                *(cp+1) = '\n';
+                safe_write(sd,stin_buf,strlen(stin_buf)+1);
+                printf("%s\n",stin_buf);
+                memset(stin_buf,0,sizeof(stin_buf));
+                readstin = 0;
+            }
+
+        }
+
+        if(FD_ISSET(sd,&set)){
+            ns = read(sd, sock_buf+readsock, sizeof(sock_buf));
+            readsock +=ns;
+            errorcheck(ns,-1,"read from socket failed\n");
+            char* cp = strchr(sock_buf,'|');
+            if(cp != NULL){
+                *(cp+1) = 0;
+                safe_write(STDOUT_FILENO,sock_buf,strlen(sock_buf)+1);
+                printf("%s\n",sock_buf);
+                memset(sock_buf,0,sizeof(sock_buf));
+                readsock = 0;
+            }
+
+        }
+
+
+
+        FD_ZERO(&set);
+        FD_SET(STDIN_FILENO,&set);
+        FD_SET(sd,&set);
+
+    }
+
+
+
 	/* Say something... */
 	if (insist_write(sd, buf, strlen(buf)) != strlen(buf)) {
 		perror("write");
@@ -112,10 +176,10 @@ int main(int argc, char *argv[])
 	 * Let the remote know we're not going to write anything else.
 	 * Try removing the shutdown() call and see what happens.
 	 */
-	// if (shutdown(sd, SHUT_WR) < 0) {
-	// 	perror("shutdown");
-	// 	exit(1);
-	// }
+	if (shutdown(sd, SHUT_WR) < 0) {
+		perror("shutdown");
+		exit(1);
+	}
 
 	/* Read answer and write it to standard output */
 	for (;;) {
