@@ -119,6 +119,9 @@ int main(int argc, char *argv[])
     int readsock = 0;
     int ni,ns;
 
+    list* msglist = emptyList;
+
+
     memset(stin_buf,0,sizeof(stin_buf));
     memset(sock_buf,0,sizeof(sock_buf));
     while(1){
@@ -145,11 +148,22 @@ int main(int argc, char *argv[])
             errorcheck(ns,-1,"read from socket failed\n");
             char* cp = strchr(sock_buf,'|');
             if(cp != NULL){
-                *(cp+1) = 0;
-                safe_write(STDOUT_FILENO,sock_buf,strlen(sock_buf)+1);
-                printf("%s\n",sock_buf);
-                memset(sock_buf,0,sizeof(sock_buf));
-                readsock = 0;
+                int i,j;
+                for(i = 0, j = 0; j < readsock; j++){
+                    if(sock_buf[j] == '|'){
+                        char* start = &(sock_buf[i]);
+                        int size = j-i+1;
+                        msglist = cons(message_constructor(-1,start,NULL),msglist);
+                    }
+                }
+            // char* cp = strchr(sock_buf,'|');
+            // if(cp != NULL){
+            //     *(cp+1) = 0;
+            //     safe_write(STDOUT_FILENO,sock_buf,strlen(sock_buf)+1);
+            //     printf("%s\n",sock_buf);
+            //     memset(sock_buf,0,sizeof(sock_buf));
+            //     readsock = 0;
+            // }
             }
 
         }
