@@ -24,6 +24,11 @@
 #include "socket-common.h"
 
 
+#include "ANutils/linkedlist.h"
+#include "ANutils/channel.h"
+#include "ANutils/user.h"
+#include "ANutils/message.h"
+#define MAX_MSIZE 4096
 
 
 /* Insist until all of the data has been written */
