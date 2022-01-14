@@ -149,6 +149,18 @@ bool checkAccessToChannel(channel* req, char* usrname)
 	return flag;
 }
 
+bool checkUserExistance(char* usrname)
+{	
+	user* u;
+	forEachList(userlist, i)
+	{
+		u = getData(i);
+		if(strcmp(usrname, u->username)==0)
+			return true;
+	}
+	return false;
+}
+
 bool isNumber(char* s)
 {
     for (int i = 0; s[i] != '\0'; i++)
@@ -166,15 +178,12 @@ bool isNumber(char* s)
 #define CHANNELPARAM 3
 #define PASSWORD 2
 #define MSGNUM 4
-int AN_protocol_execute(int sock, char* original_msg ,char** words,int numofwords)
+int AN_protocol_execute(int sock, char* original_msg, int bytesread ,char** words,int numofwords)
 {
-	for(int i =0 ; i< sizeof(original_msg); i++)
+	for(int i =0; i < bytesread+1; i++)
 	{
-		if(original_msg[i] == '|')
-		{
-			if(i < sizeof(original_msg) -1)
-				original_msg[++i] = 0;
-			else goto exitfault;
+		if(original_msg[i]=='|'){
+			original_msg[++i] = 0;
 			break;
 		}
 	}
@@ -232,6 +241,13 @@ int AN_protocol_execute(int sock, char* original_msg ,char** words,int numofword
 			printf("channel not found requested = %s\n", words[CHANNELPARAM]);
 			goto exitfault;
 		}
+		if(!checkUserExistance(words[EXTRAUSERNAME]))
+		{
+			const_safe_write(sock, "REQUEST FAILED |");
+			printf("no such user exists %s\n", words[EXTRAUSERNAME]);
+			goto exitfault;
+		}
+
 		//check that he has access to the channel.
 		bool flag = checkAccessToChannel(req, words[USERNAME]);
 		if(!flag){
@@ -346,7 +362,8 @@ int AN_protocol_execute(int sock, char* original_msg ,char** words,int numofword
 			}
 			
 		}
-		const_safe_write(sock, "NO NEW MESSAGES |");
+		sprintf(buf, "NO NEW MESSAGES %s |", req->name);
+		safe_write(sock, buf, strlen(buf));
 	}
 	else
 	{
@@ -445,11 +462,11 @@ int main(void)
 				}
 				
 			}
-			memcpy(bufcpy, buf, strlen(buf)+1);
-			int numofwords = splitToWords(buf, strlen(buf), words, MAX_MSIZE);
+			memcpy(bufcpy, buf, readbytes);
+			int numofwords = splitToWords(buf, readbytes, words, MAX_MSIZE);
 
 			//IMPLEMENTING PROTOCOL...
-			AN_protocol_execute(newsd, bufcpy, words, numofwords);
+			AN_protocol_execute(newsd,bufcpy, readbytes,  words, numofwords);
 
 		}
 exit:

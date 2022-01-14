@@ -32,7 +32,7 @@ clean:
 	rm -f *.o *~ $(BINS)
 
 
-serverAN: serverAN.o linkedlist.o message.o user.o channel.o 
+serverAN: serverAN.o linkedlist.o message.o user.o channel.o socket-common.h
 	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE)  $(LIBS)
 
 serverAN.o: serverAN.c
@@ -49,3 +49,4 @@ user.o: $(UTILSDIR)user.c
 
 channel.o: $(UTILSDIR)channel.c
 	$(CC) -c $(CFLAGS) $^ $(INCLUDE) $(LIBS)
+socket-common.h:
