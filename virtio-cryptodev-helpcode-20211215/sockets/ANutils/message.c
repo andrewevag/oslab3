@@ -40,7 +40,7 @@ message* message_constructor_size(char* text, int len)
 	nm->userfrom = NULL;
 	return nm;
 }
-void messgae_destructor_size(message* msg)
+void message_destructor_size(message* msg)
 {
 	free(msg->text);
 	free(msg);
