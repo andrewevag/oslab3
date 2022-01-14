@@ -11,6 +11,6 @@ typedef struct{
 
 
 message* message_constructor(int id, char* text, user* usfrom);
-
+message* message_constructor_size(char* text, int len);
 
 void message_destructor(message* msg);
