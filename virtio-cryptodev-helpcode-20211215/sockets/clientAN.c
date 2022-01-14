@@ -153,8 +153,23 @@ int main(int argc, char *argv[])
                     if(sock_buf[j] == '|'){
                         char* start = &(sock_buf[i]);
                         int size = j-i+1;
-                        msglist = cons(message_constructor(-1,start,NULL),msglist);
+                        msglist = cons(message_constructor_size(start,size),msglist);
+                        j++;
+                        i = j;
                     }
+                }
+                j = 0;
+                for(i; i < readsock; i++){
+                    sock_buf[j++] = sock_buf[i];
+                }
+                readsock = j;
+
+                msglist = reverse(msglist);
+                forEachList(msglist,i){
+                    message* msg = getData(i);
+                    char* newbuf[MAX_MSIZE];
+                    sprintf(newbuf,"")
+                    safe_write(STDOUT_FILENO,,strlen()+1);
                 }
             // char* cp = strchr(sock_buf,'|');
             // if(cp != NULL){
