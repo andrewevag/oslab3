@@ -18,19 +18,24 @@ INCLUDE = -I/$(UTILSDIR)
 LIBS = 
 
 # BINS = socket-server socket-client
-BINS = serverAN socket-client
+BINS = serverAN clientAN
 
 all: $(BINS)
 
 socket-server: socket-server.c socket-common.h
 	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
-socket-client: socket-client.c socket-common.h
+socket-client: socket-client.c socket-common.h 
 	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 clean:
 	rm -f *.o *~ $(BINS)
 
+clientAN: clientAN.o linkedlist.o message.o user.o channel.o socket-common.h
+	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBS)
+
+clienAN.o: clienAN.c
+	$(CC) -c  $(INCLUDE) $(CFLAGS) $^ $(LIBS)
 
 serverAN: serverAN.o linkedlist.o message.o user.o channel.o socket-common.h
 	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE)  $(LIBS)
