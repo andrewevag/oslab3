@@ -154,31 +154,26 @@ int main(int argc, char *argv[])
                         char* start = &(sock_buf[i]);
                         int size = j-i+1;
                         msglist = cons(message_constructor_size(start,size),msglist);
-                        j++;
+                        j += 2;
                         i = j;
                     }
                 }
                 j = 0;
-                for(i; i < readsock; i++){
+                while(i < readsock){
                     sock_buf[j++] = sock_buf[i];
+                    i++;
                 }
                 readsock = j;
 
                 msglist = reverse(msglist);
                 forEachList(msglist,i){
                     message* msg = getData(i);
-                    char* newbuf[MAX_MSIZE];
-                    sprintf(newbuf,"")
-                    safe_write(STDOUT_FILENO,,strlen()+1);
+                    safe_write(STDOUT_FILENO,msg->text,strlen(msg->text));
                 }
-            // char* cp = strchr(sock_buf,'|');
-            // if(cp != NULL){
-            //     *(cp+1) = 0;
-            //     safe_write(STDOUT_FILENO,sock_buf,strlen(sock_buf)+1);
-            //     printf("%s\n",sock_buf);
-            //     memset(sock_buf,0,sizeof(sock_buf));
-            //     readsock = 0;
-            // }
+				deleteList(tail(msglist),(void(*)(void *)) message_destructor_size);
+				message_destructor_size((message *)(getData(msglist)));
+				msglist = emptyList;
+
             }
 
         }
