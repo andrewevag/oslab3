@@ -33,7 +33,8 @@ message* message_constructor_size(char* text, int len)
 	if(nt == NULL)
 		errorcheck(-1, -1, "failed to allocate memory for msg");
 	
-	nt = memcpy(nt, text, len);
+	nt = memcpy(nt, text, len+1);
+	nt[len] = 0;
 	nm->id = -1;
 	nm->text = nt;
 	nm->userfrom = NULL;
