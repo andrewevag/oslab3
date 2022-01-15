@@ -55,6 +55,33 @@ void safe_write(int fd, const void *buf, size_t cnt){
 #define const_safe_write(fd, cswbuf) safe_write(fd, cswbuf, sizeof(cswbuf))
 
 
+list* splitToPackets(char* str, int length, int* restleft)
+{
+	list* l = emptyList;
+	int i,j;
+	for(i = 0, j = 0; j < length; j++){
+		if(str[j] == '|'){
+			char* start = &(str[i]);
+			j++;
+			int size = j-i+1;
+			l = cons(message_constructor_size(start,size+1),l);
+			((message*)(head(l)))->text[size]='\n';
+			j += 2;
+			i = j;
+		}
+	}
+	j = 0;
+	while(i < length){
+		str[j++] = str[i];
+		i++;
+	}
+	*restleft = j;
+
+	l = reverse(l);
+	return l;
+}
+
+
 /*
  * Arguments are commands
  * n -> name assigns name to that user
@@ -115,13 +142,14 @@ int main(int argc, char *argv[])
 
     char stin_buf[2*MAX_MSIZE];
     char sock_buf[2*MAX_MSIZE];
+	
     int readstin = 0;
     int readsock = 0;
     int ni,ns;
 
     list* msglist = emptyList;
-
-
+	list* inputlist = emptyList;
+	int temp=0;
     memset(stin_buf,0,sizeof(stin_buf));
     memset(sock_buf,0,sizeof(sock_buf));
     while(1){
@@ -133,11 +161,24 @@ int main(int argc, char *argv[])
             errorcheck(ni,-1,"read from STDIN failed\n");
             char* cp = strchr(stin_buf,'|');
             if(cp != NULL){
-                *(cp+1) = '\n';
-                safe_write(sd,stin_buf,strlen(stin_buf)+1);
-                printf("%s\n",stin_buf);
-                memset(stin_buf,0,sizeof(stin_buf));
-                readstin = 0;
+                // *(cp+1) = '\n';
+                // safe_write(sd,stin_buf,strlen(stin_buf)+1);
+                // printf("%s\n",stin_buf);
+                // memset(stin_buf,0,sizeof(stin_buf));
+                // readstin = 0;
+				inputlist = splitToPackets(stin_buf, readstin, &temp);
+				forEachList(inputlist, i){
+					message* msg = getData(i);
+					safe_write(sd, msg->text, strlen(msg->text));
+					printf("SENT : %s\n", msg->text);
+				}
+				readstin = temp;
+				deleteList(tail(inputlist),( (void (*)(void*))message_destructor_size));
+				message_destructor_size(head(inputlist));
+				inputlist = emptyList;
+				
+
+
             }
 
         }

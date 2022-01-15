@@ -19,6 +19,7 @@
  */ -->
 
 ## AN Server Commands 
+ALL packets described below must be terminated with '\n'
 cmd-type | cmd-format | functionality | Server Response |
 ---------| -----------------| -----------|--------------|
 CU       | \<username\> CU \<password\> \| | Creates new User |<b>On Success :</b> REQUEST DONE \| <b>On fail :</b> REQUEST FAILED \| |

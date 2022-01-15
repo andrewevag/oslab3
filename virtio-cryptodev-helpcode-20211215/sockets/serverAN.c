@@ -84,7 +84,30 @@ int splitToWords(char* str, int length,char** words, int maxwords){
 	return numofwords-1;
 }
 
+list* splitToPackets(char* str, int length, int* restleft)
+{
+	list* l = emptyList;
+	int i,j;
+	for(i = 0, j = 0; j < length; j++){
+		if(str[j] == '|'){
+			char* start = &(str[i]);
+			j++;
+			int size = j-i+1;
+			l = cons(message_constructor_size(start,size),l);
+			j += 2;
+			i = j;
+		}
+	}
+	j = 0;
+	while(i < length){
+		str[j++] = str[i];
+		i++;
+	}
+	*restleft = j;
 
+	l = reverse(l);
+	return l;
+}
 /*
  * Arguments are commands
  * REQUESTS TO SERVER
@@ -192,7 +215,8 @@ int AN_protocol_execute(int sock, char* original_msg, int bytesread ,char** word
 	if(numofwords < 4)
 	{
 		printf("wrong command\n");
-		return -1;
+		goto exitfault;
+		
 	}
 	if(strcmp(words[COMMAND], "CU") == 0)
 	{
@@ -368,6 +392,7 @@ int AN_protocol_execute(int sock, char* original_msg, int bytesread ,char** word
 	else
 	{
 exitfault:
+		const_safe_write(sock, "REQUEST FAILED |");
 		printf("failed command\n");
 		return -1;
 	}
@@ -439,7 +464,6 @@ int main(void)
 		//Variables used for handling a customer
 		for(int i = 0; i < MAX_MSIZE; i++) buf[i] = 0;
 		char* words[MAX_MSIZE];
-
 		/* We break out of the loop when the remote peer goes away */
 		while(1) {
 			// | msg ends at this character.
@@ -462,12 +486,27 @@ int main(void)
 				}
 				
 			}
-			memcpy(bufcpy, buf, readbytes);
-			int numofwords = splitToWords(buf, readbytes, words, MAX_MSIZE);
-
+			
+			// memcpy(bufcpy, buf, readbytes);
+			// int numofwords = splitToWords(buf, readbytes, words, MAX_MSIZE);
+			
 			//IMPLEMENTING PROTOCOL...
-			AN_protocol_execute(newsd,bufcpy, readbytes,  words, numofwords);
-
+			int readbytes2, numofwords;
+			list* packetList = splitToPackets(buf, readbytes, &readbytes2);
+			forEachList(packetList, packet)
+			{
+				message* msg = getData(packet);
+				memcpy(bufcpy, msg->text, strlen(msg->text));
+				numofwords = splitToWords(msg->text, strlen(msg->text), words, MAX_MSIZE);
+				AN_protocol_execute(newsd, bufcpy, strlen(msg->text), words, numofwords);
+			}
+			deleteList(tail(packetList), (void (*)(void*))message_destructor_size);
+			printf("got here\n");
+			message_destructor_size(head(packetList));
+			packetList = emptyList;
+			memset(buf, 0, sizeof(buf));
+			memset(bufcpy, 0, sizeof(bufcpy));
+			
 		}
 exit:
 		/* Make sure we don't leak open files */
