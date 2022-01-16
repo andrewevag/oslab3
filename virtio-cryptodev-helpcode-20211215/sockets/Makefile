@@ -56,4 +56,3 @@ $(UTILIBDIR)%.o: $(UTILIBDIR)%.c
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBS)
-
