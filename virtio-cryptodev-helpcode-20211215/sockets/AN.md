@@ -26,3 +26,6 @@ C        | \<username\> C \<channelname\>  \| | Creates new channel with user ac
 A        | \<username\> CU \<password\> \<channel\> \<user\> \| |Adds User to channel (original user needs access to the channel) | <b>On Success :</b> REQUEST DONE \| <b>On fail :</b> REQUEST FAILED \| |
 S        | \<username\> S \<password\> \<channel\> =\<msg\> \| | Sends message to the channel. User must have access to the channel. The sender of the message is marked as User. | <b>On Success :</b> REQUEST DONE \| <b>On fail :</b> REQUEST FAILED \| |
 R        | \<username\> R \<password\> \<channel\> =\<id\> \| | Requests all the messages newer than the id. All messages are given a natural number as an id and the first message in a channel is specified with 0. | <b>New message :</b> MSG \<channel\> \<id\>'\n' \<msg\> \| <b>On no new messages : </b> NO MORE MESSAGES  \<channel\> \| |
+
+## Server Architecture
+![ServerArchitecure](AN/serverArchitecture.drawio.png)
