@@ -24,7 +24,27 @@ message* message_constructor(int id, char* text, user* usfrom)
 	return nm;
 }
 
-
+message* message_constructor_size(char* text, int len)
+{
+	message* nm = malloc(sizeof(message));
+	if(nm == NULL)
+		errorcheck(-1, -1, "failed to allocate memory for msg");
+	char* nt = malloc(sizeof(char) * len);
+	if(nt == NULL)
+		errorcheck(-1, -1, "failed to allocate memory for msg");
+	
+	nt = memcpy(nt, text, len+1);
+	nt[len] = 0;
+	nm->id = -1;
+	nm->text = nt;
+	nm->userfrom = NULL;
+	return nm;
+}
+void message_destructor_size(message* msg)
+{
+	free(msg->text);
+	free(msg);
+}
 void message_destructor(message* msg)
 {
 	free(msg->text);

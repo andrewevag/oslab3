@@ -13,12 +13,16 @@ CFLAGS = -Wall
 CFLAGS += -g
 # CFLAGS += -O2 -fomit-frame-pointer -finline-functions
 UTILSDIR = ANutils/
-
-INCLUDE = -I/$(UTILSDIR) 
+UTILIBDIR = utillib/
+INCLUDE = -I/$(UTILSDIR)  -I/$(UTILIBDIR)
+SOURCE = $(wildcard $(UTILSDIR)*.c)
+SOURCE += $(wildcard $(UTILIBDIR)*.c)
+OBJECTS = $(SOURCE:%.c=%.o)
+SOCKET = directorSocket
 LIBS = 
 
 # BINS = socket-server socket-client
-BINS = serverAN socket-client
+BINS = serverAN socket-client fatherServer child
 
 all: $(BINS)
 
@@ -29,24 +33,27 @@ socket-client: socket-client.c socket-common.h
 	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 clean:
-	rm -f *.o *~ $(BINS)
+	rm -f *.o *~ $(BINS) $(UTILSDIR)*.o $(UTILIBDIR)*.o $(SOCKET)
 
 
-serverAN: serverAN.o linkedlist.o message.o user.o channel.o socket-common.h
+serverAN: serverAN.o $(OBJECTS) socket-common.h
 	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE)  $(LIBS)
 
-serverAN.o: serverAN.c
-	$(CC) -c  $(INCLUDE) $(CFLAGS) $^ $(LIBS)
 
-linkedlist.o: $(UTILSDIR)linkedlist.c
-	$(CC) -c $(CFLAGS) $^ $(INCLUDE) $(LIBS)
+fatherServer: fatherServer.o $(OBJECTS) socket-common.h
+	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBS)
 
-message.o: $(UTILSDIR)message.c
-	$(CC) -c $(CFLAGS) $^ $(INCLUDE) $(LIBS)
+child: childServer.o $(OBJECTS) socket-common.h
+	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE)  $(LIBS)
 
-user.o: $(UTILSDIR)user.c
-	$(CC) -c $(CFLAGS) $^ $(INCLUDE) $(LIBS)
-
-channel.o: $(UTILSDIR)channel.c
-	$(CC) -c $(CFLAGS) $^ $(INCLUDE) $(LIBS)
 socket-common.h:
+
+$(UTILSDIR)%.o: $(UTILSDIR)%.c
+	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBS)	
+
+$(UTILIBDIR)%.o: $(UTILIBDIR)%.c
+	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBS)
+
+%.o: %.c
+	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBS)
+

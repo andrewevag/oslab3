@@ -14,6 +14,6 @@
 #define TCP_BACKLOG 5
 
 #define HELLO_THERE "Hello there!"
-
+#define MAX_MSIZE 4096
 #endif /* _SOCKET_COMMON_H */
 

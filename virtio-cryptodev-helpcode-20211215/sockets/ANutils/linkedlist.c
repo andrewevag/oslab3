@@ -73,6 +73,7 @@ list* reverse(list* l){
         temp = cons(head(i),temp);
         i= i->next;
     }
+    
     return temp;
 }
 
@@ -138,4 +139,21 @@ int errorcheck(int val, int targetval, char* msg)
 		exit(EXIT_FAILURE);
 	}
 	return val;
+}
+
+
+void* list_getNth(list *l, int n)
+{
+    if(listlength(l) <= n)
+        return NULL;
+    int count = 0;
+    forEachList(l, i)
+    {
+        if(count == n)
+        {
+            return getData(i);
+        }
+        count++;
+    }
+    return NULL;
 }

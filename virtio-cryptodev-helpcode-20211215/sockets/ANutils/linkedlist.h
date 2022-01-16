@@ -32,6 +32,7 @@ int check(list* l, int *(predicate)(void*));
 void map(list* l, void *(fun)(void*));
 void* find(list*l , int *(predicate)(void*));
 
-
+//Returns null if not found
+void* list_getNth(list *l, int n);
 
 int errorcheck(int val, int targetval, char* msg);
