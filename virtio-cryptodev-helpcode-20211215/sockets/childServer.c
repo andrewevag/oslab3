@@ -66,7 +66,7 @@ int main(int argc, char** argv){
 			string* packet = getData(p);
 			// packet = string_slice(packet, 0, packet->length-1);
 			char* temp = string_tocharpointerNULLTERM(packet);
-			printf("[packet] :%s", temp);
+			printf("[packet] : %s", temp);
 			free(temp);
 		}
 		
@@ -76,9 +76,9 @@ int main(int argc, char** argv){
 		if(packetsread < listlength(packets))
 		{
 			char* temp = string_tocharpointerNULLTERM(list_getNth(packets, listlength(packets)-1));
-			printf("remaining packet %s\n", temp);
+			printf("[child] remaining packet %s\n", temp);
 			memcpy(buf,temp, strlen(temp));
-			printf("buf now = %s", buf);
+			printf("[child] buf now = %s", buf);
 			readbytes = strlen(temp);
 			free(temp);
 		}else printf("full packets\n");
@@ -106,6 +106,7 @@ int main(int argc, char** argv){
 			string_appendStr(packet, string_constructor("| ", sizeof("| ")));
 			char* temp = string_tocharpointerNULLTERM(packet);
 			insist_write(directorSock, temp, strlen(temp));
+			free(temp);
 			//read response from server.
 			while(1)
 			{
@@ -122,7 +123,8 @@ int main(int argc, char** argv){
 			//close it fast in case someone needs it.
 			close(directorSock);
 			insist_write(newsd, dirResponse, dirReadbytes);
-			printf("[child] sent to client the message from server");
+			printf("[child] sent to client the message from server\n");
+			memset(dirResponse, 0 , sizeof(dirResponse));
 		}
 		
 		//now open connection with server at socketname and send all packets.

@@ -121,48 +121,51 @@ int AN_protocol_execute(int sock, char* original_msg, int bytesread ,char** word
 		}
 	}
 	char buf[2*MAX_MSIZE];
-	printf("[director] got here with %d and msg :%s \n", numofwords, original_msg);
+	printf("[director] got here with %d and msg : %s \n", numofwords, original_msg);
 	if(numofwords < 4)
 	{
-		printf("wrong command\n");
+		printf("[director] wrong command num of words < 4 and are %d\n", numofwords);
 		return -1;
 	}
 	if(strcmp(words[COMMAND], "CU") == 0)
 	{
 		//add user to user list
 		userlist = cons(user_constructor(words[USERNAME], words[PASSWORD]), userlist);
-		printf("username : %s, password %s\n", ((user*)head(userlist))->username, ((user*)head(userlist))->password);
+		printf("[director] Created user with username : %s, password : %s\n", ((user*)head(userlist))->username, ((user*)head(userlist))->password);
 		printf("list length %d\n", listlength(userlist));
 		const_safe_write(sock, "REQUEST DONE |");
 	}
 	else if(strcmp(words[1], "C") == 0)
 	{
-		printf("entered C with %d words and msg %s\n", numofwords,original_msg);
+		printf("[director] entered C with %d words and msg %s\n", numofwords,original_msg);
 		//run channel list and see that name is available
 		forEachList(channellist, ch)
 		{
 			if(strcmp(words[ARGUMENT],((channel*)getData(ch))->name) == 0)
 			{
 				const_safe_write(sock, "REQUEST FAILED |");
+				printf("[director] channel already exists\n");
 				goto exitfault;
 			}
 		}
 
 		channellist = cons(channel_costructor(words[ARGUMENT], cons(user_constructor(words[USERNAME], "") ,emptyList), emptyList), channellist);
 		const_safe_write(sock, "REQUEST DONE |");
-		printf("channelname : %s username : %s, password %s\n", ((channel*)head(channellist))->name, ((user*)head(((channel*)head(channellist))->userlist))->username, ((user*)head(((channel*)head(channellist))->userlist))->password);
-		printf("list length %d\n", listlength(channellist));
+		printf("[director] Created channel with channelname : %s username : %s, password %s\n", ((channel*)head(channellist))->name, ((user*)head(((channel*)head(channellist))->userlist))->username, ((user*)head(((channel*)head(channellist))->userlist))->password);
+		printf("[director] Channellist length %d\n", listlength(channellist));
 	}
 	else if(strcmp(words[1], "A") == 0)
 	{
-		if(numofwords < 6)
+		if(numofwords < 6){
+			printf("[director] in A with wrong number of words numofwords : %d\n", numofwords);
 			goto exitfault;
+		}
 		// //user 
 		// //add channel user |
 		//validate user. 
 		if(!validateUser(words[USERNAME], words[PASSWORD]))
 		{
-			printf("failed to validate\n");
+			printf("[director] failed to validate user\n");
 			const_safe_write(sock, "REQUEST FAILED |");
 			goto exitfault;
 		}
@@ -171,13 +174,13 @@ int AN_protocol_execute(int sock, char* original_msg, int bytesread ,char** word
 		channel* req = checkChannelExistance(words[CHANNELPARAM]);
 		if(req == NULL){
 			const_safe_write(sock, "REQUEST FAILED |");
-			printf("channel not found requested = %s\n", words[CHANNELPARAM]);
+			printf("[director] channel not found requested = %s\n", words[CHANNELPARAM]);
 			goto exitfault;
 		}
 		if(!checkUserExistance(words[EXTRAUSERNAME]))
 		{
 			const_safe_write(sock, "REQUEST FAILED |");
-			printf("no such user exists %s\n", words[EXTRAUSERNAME]);
+			printf("[director] no such user exists %s\n", words[EXTRAUSERNAME]);
 			goto exitfault;
 		}
 
@@ -185,13 +188,13 @@ int AN_protocol_execute(int sock, char* original_msg, int bytesread ,char** word
 		bool flag = checkAccessToChannel(req, words[USERNAME]);
 		if(!flag){
 			const_safe_write(sock, "REQUEST FAILED |");
-			printf("user %s does not have access to %s\n", words[USERNAME], req->name);
+			printf("[director] user %s does not have access to %s\n", words[USERNAME], req->name);
 			goto exitfault;
 		}
 		//add user to the channel.
 		req->userlist = cons(user_constructor(words[EXTRAUSERNAME], ""), req->userlist);
 		const_safe_write(sock, "REQUEST DONE |");
-		printf("added user %s to %s\n", words[EXTRAUSERNAME], req->name);
+		printf("[director] added user %s to %s\n", words[EXTRAUSERNAME], req->name);
 	}
 	else if(strcmp(words[1], "S") == 0)
 	{
@@ -199,7 +202,7 @@ int AN_protocol_execute(int sock, char* original_msg, int bytesread ,char** word
 		//validateUser
 		if(!validateUser(words[USERNAME], words[PASSWORD]))
 		{
-			printf("failed to validate\n");
+			printf("[director] failed to validate user\n");
 			const_safe_write(sock, "REQUEST FAILED |");
 			goto exitfault;
 		}
@@ -208,14 +211,14 @@ int AN_protocol_execute(int sock, char* original_msg, int bytesread ,char** word
 		if(req == NULL)
 		{
 			const_safe_write(sock, "REQUEST FAILED |");
-			printf("channel not found requested = %s\n", words[CHANNELPARAM]);
+			printf("[director] channel not found requested = %s\n", words[CHANNELPARAM]);
 			goto exitfault;
 		}
 		//check user access to the channel.
 		if(!checkAccessToChannel(req, words[USERNAME]))
 		{
 			const_safe_write(sock, "REQUEST FAILED |");
-			printf("user %s does not have access to %s\n", words[USERNAME], req->name);
+			printf("[director] user %s does not have access to %s\n", words[USERNAME], req->name);
 			goto exitfault;
 		}
 		//add new message to the channel.
@@ -235,17 +238,19 @@ int AN_protocol_execute(int sock, char* original_msg, int bytesread ,char** word
 		int previousId = (req->messagelist == emptyList) ? -1 : (((message*)head(req->messagelist))->id);
 		req->messagelist = cons( message_constructor(++previousId, buf , user_constructor(words[USERNAME], "")) , req->messagelist);
 		const_safe_write(sock, "REQUEST DONE |");
-		printf("msg = %s to %s\n", (((message*)(head(req->messagelist)))->text), req->name);
+		printf("[director] msg = %s to %s\n", (((message*)(head(req->messagelist)))->text), req->name);
 
 	}
 	else if(strcmp(words[1], "R") == 0)
 	{
-		if (numofwords < 6)
+		if (numofwords < 5){
+			printf("[director] R less number of words that expected got %d\n", numofwords);
 			goto exitfault;
+		}
 		//validate user
 		if(!validateUser(words[USERNAME], words[PASSWORD]))
 		{
-			printf("failed to validate\n");
+			printf("[director] failed to validate user\n");
 			const_safe_write(sock, "REQUEST FAILED |");
 			goto exitfault;
 		}
@@ -254,14 +259,14 @@ int AN_protocol_execute(int sock, char* original_msg, int bytesread ,char** word
 		if(req == NULL)
 		{
 			const_safe_write(sock, "REQUEST FAILED |");
-			printf("channel not found requested = %s\n", words[CHANNELPARAM]);
+			printf("[director] channel not found requested = %s\n", words[CHANNELPARAM]);
 			goto exitfault;
 		}
 		//check user access to the channel.
 		if(!checkAccessToChannel(req, words[USERNAME]))
 		{
 			const_safe_write(sock, "REQUEST FAILED |");
-			printf("user %s does not have access to %s\n", words[USERNAME], req->name);
+			printf("[director] user %s does not have access to %s\n", words[USERNAME], req->name);
 			goto exitfault;
 		}
 		//no we have to give all the messages that are greater or equal to the requested one.
@@ -270,7 +275,7 @@ int AN_protocol_execute(int sock, char* original_msg, int bytesread ,char** word
 		if(!isNumber(words[MSGNUM]))
 		{
 			const_safe_write(sock, "REQUEST FAILED |");
-			printf("%s is not a number\n", words[MSGNUM]);
+			printf("[director] %s is not a number\n", words[MSGNUM]);
 			goto exitfault;
 		}
 		int id = atoi(words[MSGNUM]);
@@ -300,7 +305,7 @@ int AN_protocol_execute(int sock, char* original_msg, int bytesread ,char** word
 	else
 	{
 exitfault:
-		printf("failed command\n");
+		printf("[director] failed command\n");
 		return -1;
 	}
 	return 0;
@@ -369,7 +374,7 @@ int main(int argc, char** argv)
 
 		free(original_msg);
 		free(packet);
-		// string_destructor(s);
+		string_destructor(s);
 		close(client);
 		memset(buf, 0, sizeof(buf));
 
