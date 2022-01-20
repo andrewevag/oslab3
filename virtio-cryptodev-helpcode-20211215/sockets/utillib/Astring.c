@@ -261,3 +261,53 @@ int string_countChar (string* s, char c)
 	}
 	return count;
 }
+
+
+
+void string_removeNthChar(string** s, int n)
+{
+	if(n > (*s)->length){
+		printf("requested bigger n thatn list length in removeNthChar");
+		return ;
+	}
+	if(n == (*s)->length){
+		string* temp = *s;
+		(*s) = string_slice((*s), 0, n);
+		string_destructor(temp);
+	}
+	string* left = string_slice((*s), 0, n);
+	string* right = string_slice((*s), n+1, (*s)->length);
+	string_destructor((*s));
+	if(left->charlist == emptyList){
+		(*s) = right;
+		return;
+	}
+	string_appendStr(left, right);
+	(*s) = left;
+}
+
+void string_filter(string** s, char c)
+{
+	int n = string_findIndexChar(*s, c);
+	printf("%d\n", n);
+	while(n != -1)
+	{
+		string_removeNthChar(s, n);
+		n = string_findIndexChar(*s, c);
+	}
+}
+
+
+int string_findIndexChar(string* s, char c)
+{
+	int cnt = 0;
+	forEachList(s->charlist, i)
+	{
+		char* k = getData(i);
+		if(*k == c){
+			return cnt;
+		}
+		cnt++;
+	}
+	return -1;
+}

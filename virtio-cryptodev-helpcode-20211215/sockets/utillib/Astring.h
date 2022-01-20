@@ -110,3 +110,27 @@ int string_equalsCharp(string* s, char* str);
  * @return number of occurencies of c in s;
  */
 int string_countChar (string* s, char c);
+
+/*
+ * Removes the nth character of a string.
+ * @param s a pointer to the string * to be cleansed of n.
+ * @param n the place of the character to be removed.
+ * @return the result is in s it is passed by reference.
+ */
+void string_removeNthChar(string** s, int n);
+
+/*
+ * Removes All Occurencies of a char in a string.
+ * @param s the string to be filtered.
+ * @param c the char to be removed.
+ */
+void string_filter(string** s, char c);
+
+
+/*
+ * Finds the index of the first occurence of c in s.
+ * @param s the string to be searched.
+ * @param c the char to find.
+ * @return The index of the first occurence of c in s of -1 if not found
+ */
+int string_findIndexChar(string* s, char c);

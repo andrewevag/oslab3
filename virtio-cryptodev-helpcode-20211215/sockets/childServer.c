@@ -64,6 +64,7 @@ int main(int argc, char** argv){
 		forEachList(packets, p)
 		{
 			string* packet = getData(p);
+			// string_filter(&packet, '\n');
 			// packet = string_slice(packet, 0, packet->length-1);
 			char* temp = string_tocharpointerNULLTERM(packet);
 			printf("[packet] : %s", temp);
@@ -95,6 +96,7 @@ int main(int argc, char** argv){
 		{
 			if(!(i++ < packetsread))
 				break;
+	
 			directorSock = errorcheck(socket(AF_UNIX, SOCK_STREAM, 0), -1, "failed to create socket as a child\n");
 			memset(&addr, 0, sizeof(addr));
 			addr.sun_family=AF_UNIX;
@@ -104,9 +106,11 @@ int main(int argc, char** argv){
 
 			string* packet = getData(p);
 			string_appendStr(packet, string_constructor("| ", sizeof("| ")));
+			string_filter(&packet, '\n');
 			char* temp = string_tocharpointerNULLTERM(packet);
 			insist_write(directorSock, temp, strlen(temp));
 			free(temp);
+			printf("after free\n");
 			//read response from server.
 			while(1)
 			{
@@ -123,13 +127,14 @@ int main(int argc, char** argv){
 			//close it fast in case someone needs it.
 			close(directorSock);
 			insist_write(newsd, dirResponse, dirReadbytes);
-			printf("[child] sent to client the message from server\n");
+			printf("[child] sent to client the message from server ReadBytes = %d ", dirReadbytes);
+			insist_write(STDOUT_FILENO, dirResponse, dirReadbytes);
 			memset(dirResponse, 0 , sizeof(dirResponse));
 		}
 		
 		//now open connection with server at socketname and send all packets.
 		//packets are correct to be sent 
-		deleteList(packets, (void (*)(void*))string_destructor);
+		//deleteList(packets, (void (*)(void*))string_destructor);
 		
 		
 	}

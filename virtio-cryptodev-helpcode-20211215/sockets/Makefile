@@ -22,7 +22,7 @@ SOCKET = directorSocket
 LIBS = 
 
 # BINS = socket-server socket-client
-BINS = serverAN socket-client fatherServer child
+BINS = serverAN fatherServer child clientAN
 
 all: $(BINS)
 
@@ -39,7 +39,8 @@ clean:
 serverAN: serverAN.o $(OBJECTS) socket-common.h
 	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE)  $(LIBS)
 
-
+clientAN: clientAN.o $(OBJECTS) socket-common.h
+	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE)  $(LIBS)
 fatherServer: fatherServer.o $(OBJECTS) socket-common.h
 	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBS)
 
