@@ -1,5 +1,5 @@
 #include "string.h"
-#include "../ANutils/linkedlist.h"
+#include "linkedlist.h"
 
 
 typedef struct{

@@ -12,48 +12,42 @@ CC = gcc
 CFLAGS = -Wall
 CFLAGS += -g
 # CFLAGS += -O2 -fomit-frame-pointer -finline-functions
-UTILSDIR = ANutils/
-UTILIBDIR = utillib/
-INCLUDE = -I/$(UTILSDIR)  -I/$(UTILIBDIR)
-SOURCE = $(wildcard $(UTILSDIR)*.c)
-SOURCE += $(wildcard $(UTILIBDIR)*.c)
-OBJECTS = $(SOURCE:%.c=%.o)
-SOCKET = directorSocket
-LIBS = 
+INC = inc/
+SRC = src/
+OBJ = obj/
+LIBS = -lpthread
+INCLUDE = -I$(PWD)/$(INC)
+SOURCE = $(wildcard $(SRC)*.c)
+OBJECTS = $(patsubst $(SRC)%.c, $(OBJ)%.o, $(SOURCE))
+# OBJECTS += server.o
 
 # BINS = socket-server socket-client
-BINS = serverAN fatherServer child clientAN
+BINS = server
 
 all: $(BINS)
 
-socket-server: socket-server.c socket-common.h
-	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
-
-socket-client: socket-client.c socket-common.h
-	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
+server: $(OBJECTS) server.o
+	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
 
 clean:
-	rm -f *.o *~ $(BINS) $(UTILSDIR)*.o $(UTILIBDIR)*.o $(SOCKET)
-
-
-serverAN: serverAN.o $(OBJECTS) socket-common.h
-	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE)  $(LIBS)
-
-clientAN: clientAN.o $(OBJECTS) socket-common.h
-	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE)  $(LIBS)
-fatherServer: fatherServer.o $(OBJECTS) socket-common.h
-	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBS)
-
-child: childServer.o $(OBJECTS) socket-common.h
-	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE)  $(LIBS)
+	rm -f *.o *~ $(BINS) $(OBJ)*.o $(TEST)bin/*
 
 socket-common.h:
 
-$(UTILSDIR)%.o: $(UTILSDIR)%.c
-	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBS)	
-
-$(UTILIBDIR)%.o: $(UTILIBDIR)%.c
-	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBS)
+$(OBJ)%.o: $(SRC)%.c	
+	$(CC) -c $(CFLAGS) $(INCLUDE) $^ -o $@
 
 %.o: %.c
-	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBS)
+	$(CC) -c $(CFLAGS) $^ $(INCLUDE) $(LIBS)
+
+
+
+TEST = tests/
+TESTS = $(wildcard $(TEST)*.c)
+TESTBINS = $(patsubst $(TEST)%.c, $(TEST)bin/%, $(TESTS))
+
+$(TEST)bin/%: $(TEST)%.c 
+	$(CC) $(INCLUDE) $^ $(OBJECTS) -o $@ $(LIBS)
+
+test: $(OBJECTS) $(TESTBINS)
+	for test in $(TESTBINS) ; do ./$$test ; done
