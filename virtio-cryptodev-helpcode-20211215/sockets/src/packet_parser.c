@@ -5,7 +5,12 @@
 #include "SafeCalls.h"
 #include <string.h>
 
-
+void swap(char *xp, char *yp)
+{
+    char temp = *xp;
+    *xp = *yp;
+    *yp = temp;
+}
 
 bool check_valid_field(char* field, ssize_t size)
 {
@@ -104,6 +109,7 @@ void command(struct state * state)
 			sprintf(state->errmsg, "[packet_parser] @command unknown command\n");
 			state->next = NULL;
 			state->done = false;
+			return;
 		}
 
 		state->next = arg1;
@@ -233,6 +239,9 @@ void length(struct state * state)
 		//calculate the length
 		//parse integer from t;
 		//and put it to length
+		if(__BYTE_ORDER != __BIG_ENDIAN){
+			swap(&t[0], &t[1]);
+		}
 		uint16_t length_parsed;
 		memcpy(&length_parsed, t, sizeof(length_parsed));
 		if(length_parsed >= PACKET_MAX_BODY_LENGTH)

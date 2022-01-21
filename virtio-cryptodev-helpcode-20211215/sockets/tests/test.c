@@ -106,13 +106,13 @@ void packet_parse1_before(void)
 	//correct
 	char buf5[] = {'Q', 'R', 0, 'a', 'n', 'd', 'r', 'e', 'a', 's', 0, 'p', 'a', 's', 's', 'w', 'd', 0, 0, 'c', 'h', 'a', 'n', 'n', 'e', 'l', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	//correct
-	char buf6[] = {'Q', 'S', 0, 'n', 'i', 'k', 0, 0, 0, 0, 0, 'k', 'w', 'd', 'i', 'k', 'o', 's', 0, 'c', 'h', 'a', 'n', 'n', 'e', 'l', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'h', 'e', 'l', 'l', '1', '2', '3', '4', '5', '6', '7', '8', '9', '!', '!'};
+	char buf6[] = {'Q', 'S', 0, 'n', 'i', 'k', 0, 0, 0, 0, 0, 'k', 'w', 'd', 'i', 'k', 'o', 's', 0, 'c', 'h', 'a', 'n', 'n', 'e', 'l', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 'h', 'e', 'l', 'l', '1', '2', '3', '4', '5', '6', '7', '8', '9', '!', '!'};
 	//correct
-	char buf7[] = {'A', 'F', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'n', 'e', 'w', 'm', 's', 'g'};
+	char buf7[] = {'A', 'F', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 'n', 'e', 'w', 'm', 's', 'g'};
 	//correct
-	char buf8[] = {'A', 'S', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'n', 'e', 'w', 'm', 's', 'g'};
+	char buf8[] = {'A', 'S', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 'n', 'e', 'w', 'm', 's', 'g'};
 	//wrong
-	char buf9[] = {'A', 'W', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'n', 'e', 'w', 'm', 's', 'g'};
+	char buf9[] = {'A', 'W', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 'n', 'e', 'w', 'm', 's', 'g'};
 	insist_write(fd, buf, sizeof(buf));
 	insist_write(fd, buf1, sizeof(buf1));
 	insist_write(fd, buf2, sizeof(buf2));
@@ -278,11 +278,11 @@ void* packet_parse8(void* arg)
 void* packet_parse9(void* arg)
 {	
 	packet *p = packet_parse(fd);
-	if(lseek(fd, 10*37, SEEK_SET) < 0)
-	{
-		perror("lseek failed");
-		exit(1);
-	}
+	// if(lseek(fd, 10*37, SEEK_SET) < 0)
+	// {
+	// 	perror("lseek failed");
+	// 	exit(1);
+	// }
 	if(p == NULL)
 	{
 		res = 1;
@@ -300,6 +300,140 @@ void packet_parse1_after(void)
 	
 }
 
+void packet_parse10_before(void)
+{
+	close(fd);
+	fd = open("tempfile", O_CREAT | O_TRUNC| O_RDWR, S_IRWXU);
+	if(fd < 0){
+		perror("open failed\n");
+		exit(EXIT_FAILURE);
+	}
+	char buf10[] = {'Q', 'C', 'U', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	char buf11[] = {'Q', 'C', 'U', 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'O', 'K', 'P', 'A', 'S', 'S', 'W', 'D', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	char buf12[] = {'Q', 'C', 'U', 0, 'K', 'O', 'N', 'O', 'M', 'A', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	//pass fail
+	char buf13[] = {'Q', 'C', 'U', 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	//pass correct
+	char buf14[] = {'Q', 'C', 'U', 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'O', 'K', 'P', 'A', 'S', 'S', 'W', 'D', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	char buf15[] = {'Q', 'C', 'U', 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 0, 0, 0, 'w', 'r', 'o', 'n', 'g', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+	insist_write(fd, buf10, sizeof(buf10));
+	insist_write(fd, buf11, sizeof(buf11));
+	insist_write(fd, buf12, sizeof(buf12));
+	insist_write(fd, buf13, sizeof(buf13));
+	insist_write(fd, buf14, sizeof(buf14));
+	insist_write(fd, buf15, sizeof(buf15));
+	fd =  open("tempfile", O_RDONLY);
+	if(fd < 0){
+		perror("open failed");
+		return NULL;
+	}
+}
+
+void* packet_parse10(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(lseek(fd, 1*37, SEEK_SET) < 0)
+	{
+		perror("lseek failed");
+		exit(1);
+	}
+	if(p == NULL)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+
+}
+
+void* packet_parse11(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(strcmp(p->arg1, "OKONOMA") == 0)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+
+void* packet_parse12(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(lseek(fd, 3*37, SEEK_SET) < 0)
+	{
+		perror("lseek failed");
+		exit(1);
+	}
+	if(p == NULL)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+
+void* packet_parse13(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(lseek(fd, 4*37, SEEK_SET) < 0)
+	{
+		perror("lseek failed");
+		exit(1);
+	}
+	if(p == NULL)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+
+void* packet_parse14(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(strcmp(p->arg2, "OKPASSWD") == 0)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+
+void* packet_parse15(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(lseek(fd, 5*37, SEEK_SET) < 0)
+	{
+		perror("lseek failed");
+		exit(1);
+	}
+	if(p == NULL)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
 // TESTING CONFIGS AND PARAMETERS
 // void (*befores[])(void) = {ssi_clientTestBefore, NULL, NULL};
 // void* (*tests[])(void*) = {ssi_clientTest, ssi_serverTest, insist_read_test};
@@ -309,12 +443,14 @@ void packet_parse1_after(void)
 
 
 //TESTING PARSER SUITE
-void (*befores[])(void) = {packet_parse1_before, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+void (*befores[])(void) = {packet_parse1_before, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, packet_parse10_before, NULL, NULL, NULL, NULL, NULL};
 void* (*tests[])(void*) = {packet_parse0,packet_parse1, packet_parse2, packet_parse3,packet_parse4, packet_parse5,
-packet_parse6,packet_parse7, packet_parse8, packet_parse9};
-void (*afters[])(void) = {NULL,  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+packet_parse6,packet_parse7, packet_parse8, packet_parse9, packet_parse10, packet_parse11, packet_parse12, packet_parse13, packet_parse14, packet_parse15};
+void (*afters[])(void) = {NULL,  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 char* testnames[] = {"Q test", "A test", "Should fail test", "Create Channel Test", "Create User Test", 
-"Read Test", "Send test", "Server failure test", "Server Success Test", "Uknown command test"};
+"Read Test", "Send test", "Server failure test", "Server Success Test", "Uknown command test", 
+"Wrong username (all 0)", "Correct username", "Wrong username (starting with 0)",
+"Wrong password (all 0)", "Correct password", "Wrong password (starting with 0)"};
 
 
 int successes  = 0;

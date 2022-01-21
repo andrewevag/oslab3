@@ -32,5 +32,21 @@ construct_test(mystring, 6)
 mystring = ("A"+"F0" +"00000000" + "00000000" + "00000000" + 8*"0" + 2*"0" + "newmsg")
 construct_test(mystring, 7)
 mystring = ("A"+"S0" +"00000000" + "00000000" + "00000000" + 8*"0" + 2*"0" + "newmsg")
-construct_test(mystring, 7)
+construct_test(mystring, 8)
 
+mystring = ("Q"+"CU" +"00000000" + "00000000" + "00000000" + 8*"0" + 2*"0")
+construct_test(mystring, 9)
+
+mystring = ("Q"+"CU" +"OKONOMA0" + "OKPASSWD" + "00000000" + 8*"0" + 2*"0")
+construct_test(mystring, 10)
+
+mystring = ("Q"+"CU" +"0KONOMA0" + "00000000" + "00000000" + 8*"0" + 2*"0")
+construct_test(mystring, 11)
+
+
+mystring = ("Q"+"CU" +"OKONOMA0" + "00000000" + "00000000" + 8*"0" + 2*"0")
+construct_test(mystring, 10)
+mystring = ("Q"+"CU" +"OKONOMA0" + "OKPASSWD" + "00000000" + 8*"0" + 2*"0")
+construct_test(mystring, 10)
+mystring = ("Q"+"CU" +"OKONOMA0" + "000wrong" + "00000000" + 8*"0" + 2*"0")
+construct_test(mystring, 10)
