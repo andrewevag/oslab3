@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include "SafeCalls.h"
-
+#include <sys/un.h>
 
 SSI* ssi_open(char* name, uint16_t port, bool server, int tcp_backlog)
 {
@@ -133,4 +133,49 @@ bool ssi_close(SSI* ssip)
 		free(ssip);
 		return true;
 	}
+}
+
+
+SSI* ssi_un_open(char* socketname, bool server, int client_queue)
+{
+	if(!server){
+		struct sockaddr_un addr;
+		int directorSock;
+		directorSock = errorcheck(socket(AF_UNIX, SOCK_STREAM, 0), -1, "create unix socket as a child\n");
+		memset(&addr, 0, sizeof(addr));
+		addr.sun_family=AF_UNIX;
+		strncpy(addr.sun_path, socketname, sizeof(addr.sun_path)-1);
+		printf("trying to connect to %s\n", socketname);
+		errorcheck(connect(directorSock, (struct sockaddr*)&addr, sizeof(addr)), -1, "failed to connect to unix socket");
+		SSI* s = sfmalloc(sizeof(SSI));
+		s->ssi_fd = directorSock;
+		s->ssi_server = false;
+		memcpy(s->ssi_name_server, socketname, strlen(socketname));
+		return s;
+	}else{
+		struct sockaddr_un addr;
+		int sock = errorcheck(socket(AF_UNIX, SOCK_STREAM, 0), -1, "error creating unix socket");
+		memset(&addr, 0, sizeof(addr));
+		addr.sun_family = AF_UNIX;
+		memcpy(addr.sun_path, socketname, sizeof(addr.sun_path)-1);
+		// errorcheck(unlink(socketname), -1, "[director] failed to unlink socket");
+		errorcheck(bind(sock, (struct sockaddr*)&addr, sizeof(addr)), -1, " failed to bind to unix socket");
+		errorcheck(listen(sock, client_queue), -1, "unixsock listen failed");
+		SSI* s = sfmalloc(sizeof(SSI));
+		s->ssi_fd = sock;
+		s->ssi_server = true;
+		memcpy(s->ssi_name_server, socketname, strlen(socketname));
+		return s;
+	}
+}
+
+int ssi_un_server_accept(SSI* ssip)
+{
+	if(ssip->ssi_server != true)
+	{
+		fprintf(stderr, "you gave me a clent to accept conn un sock\n");
+		return -1;
+	}
+	int client = accept(ssip->ssi_fd, NULL, NULL);
+	return client;
 }

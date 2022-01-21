@@ -43,5 +43,7 @@ int ssi_server_accept(SSI* ssip);
  */
 bool ssi_close(SSI* ssip);
 
+SSI* ssi_un_open(char* socketname, bool server, int client_queue);
+int ssi_un_server_accept(SSI* ssip);
 
 #endif

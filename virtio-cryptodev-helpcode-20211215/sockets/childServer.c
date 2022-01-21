@@ -21,7 +21,7 @@
 #include "Astring.h"
 #include "packet.h"
 #include "packet_parser.h"
-
+#include "SSI.h"
 
 int main(int argc, char** argv){
 
@@ -32,6 +32,7 @@ int main(int argc, char** argv){
 	char* pack;
 	packet tempp;
 	char* temp;
+	SSI* chsock;
 	/*
 	 * Handle incoming packages and send them to director;
 	 */
@@ -42,6 +43,14 @@ int main(int argc, char** argv){
 			send_packet(&tempp, newsd);
 			goto exit;
 		}
+		chsock = ssi_un_open(socketname, false, 0);
+		if (insist_write(chsock, &pack, sizeof(pack)) < 0)
+		{
+			fprintf(stderr, "failed to write to server\n");
+			exit(1);
+		}
+		//read the new packet.
+		insist_read(chsock, &pack, sizeof(pack));
 		
 
 		
