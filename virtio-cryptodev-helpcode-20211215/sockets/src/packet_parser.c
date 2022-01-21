@@ -61,7 +61,7 @@ void command(struct state * state)
     char t[PACKET_COMMAND_LENGTH];
 	insist_read(state->fd, &t, sizeof(t));
 
-	char cubf[] = {'Q', 'U'};
+	char cubf[] = {'C', 'U'};
 	char ccbf[] = {'C', 0};
 	char cabf[] = {'A', 0};
 	char csbf[] = {'S', 0};
@@ -73,16 +73,16 @@ void command(struct state * state)
 		if(memcmp(t, cubf, PACKET_COMMAND_LENGTH) == 0){
 			state->p.command = CREATE_USER;
 		}
-		else if(memcmp(t, ccbf, PACKET_COMMAND_LENGTH)){
+		else if(memcmp(t, ccbf, PACKET_COMMAND_LENGTH) == 0){
 			state->p.command = CREATE_CHANNEL;
 		}
-		else if(memcmp(t, cabf, PACKET_COMMAND_LENGTH)){
+		else if(memcmp(t, cabf, PACKET_COMMAND_LENGTH) == 0){
 			state->p.command = ADD_USER;
 		}
-		else if(memcmp(t, csbf, PACKET_COMMAND_LENGTH)){
+		else if(memcmp(t, csbf, PACKET_COMMAND_LENGTH) == 0){
 			state->p.command = SEND;
 		}
-		else if(memcmp(t, crbf, PACKET_COMMAND_LENGTH)){
+		else if(memcmp(t, crbf, PACKET_COMMAND_LENGTH) == 0){
 			state->p.command = READ;
 		}
 		else{
@@ -94,10 +94,10 @@ void command(struct state * state)
 		state->next = arg1;
 		return;
 	}else{
-		if(memcmp(t, csbf, PACKET_COMMAND_LENGTH)){
+		if(memcmp(t, csbf, PACKET_COMMAND_LENGTH) == 0){
 			state->p.command = SERVER_SUCCESS;
 		}
-		else if(memcmp(t, cfbf, PACKET_COMMAND_LENGTH)){
+		else if(memcmp(t, cfbf, PACKET_COMMAND_LENGTH) == 0){
 			state->p.command = SERVER_FAILURE;
 		}
 		else{
