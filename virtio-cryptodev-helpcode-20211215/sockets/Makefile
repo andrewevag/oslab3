@@ -47,7 +47,7 @@ TESTS = $(wildcard $(TEST)*.c)
 TESTBINS = $(patsubst $(TEST)%.c, $(TEST)bin/%, $(TESTS))
 
 $(TEST)bin/%: $(TEST)%.c 
-	$(CC) $(INCLUDE) $^ $(OBJECTS) -o $@ $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDE) $^ $(OBJECTS) -o $@ $(LIBS)
 
 test: $(OBJECTS) $(TESTBINS)
 	for test in $(TESTBINS) ; do ./$$test ; done

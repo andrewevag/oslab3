@@ -33,6 +33,23 @@ int subprocesscall(char* path, char* args[]){
     }
 }
 
+int subprocesscallfn(void* (*fun)(void*), void* args)
+{
+	int forked_val = fork();
+	errorcheck2(forked_val, -1, "forked failed at subprocesscallfn\n");
+	if(forked_val == 0)
+	{
+		//child code;
+		fun(args);
+		exit(0);
+	}else{
+		return forked_val;
+	}
+}
+
+
+
+
 bool isNumber(char* s)
 {
     for (int i = 0; s[i] != '\0'; i++)

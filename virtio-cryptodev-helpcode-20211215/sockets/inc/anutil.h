@@ -3,6 +3,7 @@
 
 int subprocesscall(char* path, char* args[]);
 
+int subprocesscallfn(void* (*fun)(void*), void* args);
 
 
 bool isNumber(char* s);
