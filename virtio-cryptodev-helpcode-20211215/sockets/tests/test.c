@@ -66,17 +66,56 @@ void ssi_clientTestAfter(void)
 	ssi_close(global_server);
 }
 
+//INSIST READ TEST.
+void* insist_read_test(void * arg)
+{	
+	char msg[10];
+	insist_read(STDIN_FILENO, msg, 10);
 
+	if(strcmp(msg,"helloooooo") == 0)
+	{
+		res = 1;
+		return NULL;
+	}
+	else res = 0;
+	return NULL;
+}
 
+#define READ_END 0
+#define WRITE_END 1
+int fds[2];
+void packet_parse_before(void)
+{
+	
+    errorcheck(pipe(fds), -1, "failed to create pipes");
+	char buf[] = {
+	'Q',
+	'C', 'U',
+	'a', 'n', 'd','r','e', 'a', 's'};
+	insist_write(fds[WRITE_END], buf, sizeof(buf));
+}
 
+//packet parser tests.
+void* packet_parse1(void* arg)
+{
+	//try packets;
+	
+
+}
 
 
 
 // TESTING CONFIGS AND PARAMETERS
-void (*befores[])(void) = {ssi_clientTestBefore, NULL};
-void* (*tests[])(void*) = {ssi_clientTest, ssi_serverTest};
-void (*afters[])(void) = {ssi_clientTestAfter, ssi_serverTestAfter};
-char* testnames[] = {"ssi_clientTest", "ssi_serverTest"};
+// void (*befores[])(void) = {ssi_clientTestBefore, NULL, NULL};
+// void* (*tests[])(void*) = {ssi_clientTest, ssi_serverTest, insist_read_test};
+// void (*afters[])(void) = {ssi_clientTestAfter, ssi_serverTestAfter, NULL};
+// char* testnames[] = {"ssi_clientTest", "ssi_serverTest", "insist read test"};
+
+void (*befores[])(void) = {packet_parse_before, NULL, NULL};
+void* (*tests[])(void*) = {packet_parse1, NULL, NULL};
+void (*afters[])(void) = {NULL, NULL, NULL};
+char* testnames[] = {"ssi_clientTest", "ssi_serverTest", "insist read test"};
+
 
 int successes  = 0;
 void display(int testnum, int result)

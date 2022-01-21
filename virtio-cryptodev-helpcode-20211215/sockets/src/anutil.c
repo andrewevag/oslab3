@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <errno.h>
 #include <ctype.h>
 #include <ctype.h>
 int errorcheck2(int val, int targetval, char* msg)
@@ -100,3 +101,44 @@ int splitToWords(char* str, int length,char** words, int maxwords){
 	return numofwords-1;
 }
 
+
+ssize_t insist_read(int fd, void* buf, size_t nbyte)
+{
+	ssize_t nread = 0, n;
+
+	do{
+		if( (n = read(fd, &((char*) buf)[nread], nbyte-nread) == -1) ){
+			if(errno)
+				continue;
+			else return -1;
+		}
+		if (n==0)
+			return nread;
+		nread += n;
+			
+	} while(nread < nbyte);
+
+	return nread;
+}
+
+
+void interchangefds(int* fd1,int* fd2){
+    int first = *fd1, second = *fd2;
+
+    //they way i do it is dup one of them and close the origin
+    int temp = dup(first);
+    errorcheck2(temp, -1, "failed to dup at interchangefds");
+    errorcheck2(close(first), -1, "failed to close 1 interchangefds");
+
+    //dup2 the other in the first place
+    errorcheck2(dup2(second, first), -1, "dup2 1 failed");
+    errorcheck2(close(second), -1, "failed to close 2 interchangefds");
+    //then dup2 the newone in the
+
+    errorcheck2(dup2(temp, second), -1, "dup2 1 failed");
+    errorcheck2(close(temp), -1, "failed to close temp");
+
+    temp = *fd1;
+    *fd1 = *fd2;
+    *fd2 = temp;
+}

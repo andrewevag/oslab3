@@ -2,6 +2,7 @@
 	"files.associations": {
 		"*.pl": "prolog",
 		"*.8085": "TASM-8085",
-		"linkedlist.h": "c"
+		"linkedlist.h": "c",
+		"sstream": "c"
 	}
 }
