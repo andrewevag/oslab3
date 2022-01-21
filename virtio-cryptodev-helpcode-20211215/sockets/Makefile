@@ -22,15 +22,26 @@ OBJECTS = $(patsubst $(SRC)%.c, $(OBJ)%.o, $(SOURCE))
 # OBJECTS += server.o
 
 # BINS = socket-server socket-client
-BINS = server
+BINS = fatherServer childServer serverAN client
 
 all: $(BINS)
 
-server: $(OBJECTS) server.o
+# server: $(OBJECTS) server.o
+# 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
+fatherServer: $(OBJECTS) fatherServer.o
+	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
+
+childServer: $(OBJECTS) childServer.o
+	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
+
+serverAN: $(OBJECTS) serverAN.o
+	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
+
+client: $(OBJECTS) client.o
 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
 
 clean:
-	rm -f *.o *~ $(BINS) $(OBJ)*.o $(TEST)bin/*
+	rm -f *.o *~ $(BINS) $(OBJ)*.o $(TEST)bin/* directorSocket
 
 socket-common.h:
 

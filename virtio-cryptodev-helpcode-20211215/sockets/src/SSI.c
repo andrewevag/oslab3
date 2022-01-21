@@ -15,7 +15,7 @@
 #include <netinet/in.h>
 #include "SafeCalls.h"
 #include <sys/un.h>
-
+#include "linkedlist.h"
 SSI* ssi_open(char* name, uint16_t port, bool server, int tcp_backlog)
 {
 	if(server) {

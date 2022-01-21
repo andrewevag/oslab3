@@ -26,37 +26,44 @@
 int main(int argc, char** argv){
 
 	errorcheck(isNumber(argv[1]), false, "[child] invalid socket @type : Not A number");
-	printf("[child is handling]\n");
+	
 	int newsd = atoi(argv[1]);
-	const char * socketname = argv[2];
-	char* pack;
+	char * socketname = argv[2];
+	printf("[child] is handling client @%d \n", newsd);
 	packet tempp;
-	char* temp;
-	SSI* chsock;
+	SSI* dirsock;
+	int nread, readbytes = 0;;
 	/*
 	 * Handle incoming packages and send them to director;
 	 */
 	while(1) {
-		pack = packet_parse(newsd);
-		if(pack == NULL){
-			tempp = packetServerF("Failed to parse Packet");
-			send_packet(&tempp, newsd);
-			goto exit;
+		//read the packet.
+		while(readbytes < sizeof(tempp)){
+			nread = read(newsd, &tempp, sizeof(tempp));
+			if(nread == 0){
+				printf("[child] connection closed exitting\n");
+				exit(0);
+			}
+			if(nread < 0){
+				printf("[child] failed to read will now exit\n");
+			}
+			readbytes += nread;
 		}
-		chsock = ssi_un_open(socketname, false, 0);
-		if (insist_write(chsock, &pack, sizeof(pack)) < 0)
+		readbytes = 0;
+		dirsock = ssi_un_open(socketname, false, 0);
+		if (insist_write(dirsock->ssi_fd, &tempp, sizeof(tempp)) < 0)
 		{
 			fprintf(stderr, "failed to write to server\n");
+			tempp = packetServerF("Server is down");
+			insist_write(newsd, &tempp, sizeof(tempp));
 			exit(1);
 		}
-		//read the new packet.
-		insist_read(chsock, &pack, sizeof(pack));
-		
-
-		
+		//read the new packet - response.
+		insist_read(dirsock->ssi_fd, &tempp, sizeof(tempp));		
+		ssi_close(dirsock);
+		insist_write(newsd, &tempp, sizeof(tempp));
 	}
 
-exit:
 	close(newsd);
 
 	exit(0);

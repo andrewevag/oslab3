@@ -419,7 +419,7 @@ char* body)
 
 int send_packet(packet* p, int fd)
 {
-	char* temp = packet_format(&p);
+	char* temp = packet_format(p);
 	int n = insist_write(fd, temp, p->length + PACKET_HEADERLENGTH);
 	free(temp);
 	return n;

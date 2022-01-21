@@ -14,9 +14,10 @@
 #include <netinet/in.h>
 #include <stdbool.h>
 #include "socket-common.h"
-#include "utillib/anutil.h"
+#include "anutil.h"
 #include <sys/wait.h>
-#include "ANutils/linkedlist.h"
+#include "linkedlist.h"
+#include "SSI.h"
 
 #define MAX_CLIENT_QUEUE 10
 
@@ -56,10 +57,7 @@ void int_handler(int signum)
 
 int main(){
 	
-	char addrstr[INET_ADDRSTRLEN];
-	int sd, newsd;
-	socklen_t len;
-	struct sockaddr_in sa;
+	int newsd;
 	/* Make sure a broken connection doesn't kill us */
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGCHLD, child_handler);
@@ -70,105 +68,19 @@ int main(){
 	dpid = subprocesscall("./serverAN", directorArgs);
 	
 	/* Create TCP/IP socket, used as main chat channel */
-	if ((sd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-		perror("socket");
-		exit(1);
-	}
-	fprintf(stderr, "Created TCP socket\n");
-
-	/* Bind to a well-known port */
-	memset(&sa, 0, sizeof(sa));
-	sa.sin_family = AF_INET;
-	sa.sin_port = htons(TCP_PORT);
-	sa.sin_addr.s_addr = htonl(INADDR_ANY);
-	if (bind(sd, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
-		perror("bind");
-		exit(1);
-	}
-	fprintf(stderr, "Bound TCP socket to port %d\n", TCP_PORT);
-
-	/* Listen for incoming connections */
-	if (listen(sd, TCP_BACKLOG) < 0) {
-		perror("listen");
-		exit(1);
-	}
-
-	
+	SSI *s = ssi_open(NULL, TCP_PORT, true, TCP_BACKLOG);
 
 	/* Loop forever, accept()ing connections */
 	while(1) {
-
-		fprintf(stderr, "Waiting for an incoming connection...\n");
-
-		/* Accept an incoming connection */
-		len = sizeof(struct sockaddr_in);
-		if ((newsd = accept(sd, (struct sockaddr *)&sa, &len)) < 0) {
-			perror("accept");
-			exit(1);
-		}
-		if (!inet_ntop(AF_INET, &sa.sin_addr, addrstr, sizeof(addrstr))) {
-			perror("could not format IP address");
-			exit(1);
-		}
-		fprintf(stderr, "Incoming connection from %s:%d\n",
-			addrstr, ntohs(sa.sin_port));
-		
+		newsd = ssi_server_accept(s);
+		printf("[father] got new client @%d\n", newsd);
 		char tempbuf[20];
 		sprintf(tempbuf, "%d", newsd);
-		char* args[] = {"./child", tempbuf, socketname ,NULL};
-		subprocesscall("./child", args);
+		char* args[] = {"./childServer", tempbuf, socketname ,NULL};
+		subprocesscall("./childServer", args);
+		sleep(1);
 		close(newsd);
-
 
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	// struct sockaddr_un addr;
-	
-	// int sock = errorcheck(socket(AF_UNIX, SOCK_STREAM, 0), -1, "error creating socket");
-	// int client;
-	// memset(&addr, 0, sizeof(addr));
-	// addr.sun_family = AF_UNIX;
-	// memcpy(addr.sun_path, serverAN, sizeof(serverAN)-1);
-	// unlink(serverAN);
-	
-	// errorcheck(bind(sock, (struct sockaddr*)&addr, sizeof(addr)), -1, "failed to bind socket");
-	// errorcheck(listen(sock, MAX_CLIENT_QUEUE), -1, "listen failed");
-
-	// int readchars = 0; char readchar;
-	// while(1)
-	// {
-	// 	readchars = 0;
-	// 	client = accept(sock, NULL, NULL);
-	// 	if(client < 0)
-	// 	{
-	// 		printf("failed to acccept\n");
-	// 		continue;
-	// 	}
-	// 	printf("connection\n");
-	// 	while(readchars < 1)
-	// 	{
-	// 		int temp =  read(client, &readchar, sizeof(char));
-	// 		if(temp == -1)
-	// 			errorcheck(-1, -1,"read failed");
-	// 		readchars+=temp;
-	// 	}
-	// 	printf("%c\n", readchar);
-	// 	close(client);
-
-	// }
-
-
 }
