@@ -289,3 +289,138 @@ packet* packet_parse(int fd)
 		return res;
 	}
 }
+
+
+char* packet_format(packet *p)
+{
+// 	typedef struct packet{
+// 	uint8_t packet_type;// 1 byte
+// 	uint8_t command;	// 1 byte
+// 	char arg1[8];       // 8 bytes
+// 	char arg2[8];       // 8 bytes
+// 	char arg3[8];       // 8 bytes
+// 	char arg4[8];       // 8 bytes
+// 	int length;			//body length
+// 	int id; 			//optional argument in case of read.
+// 	char body[256];     // 256 bytes
+// } packet;
+	char* res = sfmalloc((p->length + PACKET_HEADERLENGTH) * sizeof(char));
+	memset(res, 0, (p->length + PACKET_HEADERLENGTH) * sizeof(char));
+	switch (p->packet_type)
+	{
+	case QUESTION:
+		res[PACKET_TYPE_OFFSET] = 'Q';
+		break;
+	case ANSWER:
+		res[PACKET_TYPE_OFFSET] = 'A';
+		break;
+	default:
+		fprintf(stderr, "[packet_formatter] unknown type.\n");
+		return NULL;
+		break;
+	}
+
+
+	char cubf[] = {'C', 'U'};
+	char ccbf[] = {'C', 0};
+	char cabf[] = {'A', 0};
+	char csbf[] = {'S', 0};
+	char crbf[] = {'R', 0};
+	char cfbf[] = {'F', 0};
+	// CREATE_USER, CREATE_CHANNEL, ADD_USER, SEND, READ, SERVER_SUCCESS, SERVER_FAILURE
+	switch (p->command)
+	{
+	case CREATE_USER:
+		memcpy(&res[PACKET_COMMAND_OFFSET], cubf, sizeof(cubf));
+		break;
+	case CREATE_CHANNEL:
+		memcpy(&res[PACKET_COMMAND_OFFSET], ccbf, sizeof(ccbf));
+		break;
+	case ADD_USER:
+		memcpy(&res[PACKET_COMMAND_OFFSET], cabf, sizeof(cabf));
+		break;
+	case SEND:
+		memcpy(&res[PACKET_COMMAND_OFFSET], csbf, sizeof(csbf));
+		break;
+	case READ:
+		memcpy(&res[PACKET_COMMAND_OFFSET], crbf, sizeof(crbf));
+		break;
+	case SERVER_SUCCESS:
+		memcpy(&res[PACKET_COMMAND_OFFSET], csbf, sizeof(csbf));
+		break;
+	case SERVER_FAILURE:
+		memcpy(&res[PACKET_COMMAND_OFFSET], cfbf, sizeof(cfbf));
+		break;
+	default:
+		fprintf(stderr, "[packet_formatter] unknown command.\n");
+		return NULL;
+		break;
+	}
+
+	memcpy(&res[PACKET_USERNAME_OFFSET], p->arg1, sizeof(p->arg1));
+	memcpy(&res[PACKET_PASSWORD_OFFSET], p->arg2, sizeof(p->arg2));
+	memcpy(&res[PACKET_CHANNEL_OFFSET], p->arg3, sizeof(p->arg3));
+	
+	if(p->packet_type == READ){
+		sprintf(&res[PACKET_EXTRA_ARG_OFFSET], "%d", p->id);
+	}else{
+		memcpy(&res[PACKET_EXTRA_ARG_OFFSET], p->arg4, sizeof(p->arg4));
+	}
+
+	uint16_t len = p->length;
+	if(len >= PACKET_MAX_BODY_LENGTH){
+		return NULL;
+	}
+	memcpy(&res[PACKET_LENGTH_OFFSET], &len, sizeof(len));
+	if(__BYTE_ORDER != __BIG_ENDIAN){
+			swap(&res[PACKET_LENGTH_OFFSET], &res[PACKET_LENGTH_OFFSET+1]);
+	}
+
+	if(p->length != 0 ){
+		memcpy(&res[PACKET_BODY_OFFSET], p->body, p->length);
+	}
+	return res;
+
+}
+
+
+
+
+packet format_wrapper(PACKET_TYPE t, COMMAND_TYPE cmd, char* arg1,
+char* arg2, char* arg3, char* arg4, int length, int id, 
+char* body)
+{
+	packet p;
+	memset(&p, 0, sizeof(p));
+	p.packet_type = t;
+	p.command = cmd;
+	if(arg1 != NULL){
+		memcpy(p.arg1, arg1, strlen(arg1));
+	}
+	if(arg2 != NULL){
+		memcpy(p.arg2, arg2, strlen(arg2));
+	}
+	if(arg3 != NULL){
+		memcpy(p.arg3, arg3, strlen(arg3));
+	}
+	if(arg4 != NULL){
+		memcpy(p.arg4, arg4, strlen(arg4));
+	}
+	p.length = length;
+	p.id = id;
+	if(body != NULL){
+		memcpy(p.body, body, length);
+	}
+
+	return p;
+}
+
+
+
+int send_packet(packet* p, int fd)
+{
+	char* temp = packet_format(&p);
+	int n = insist_write(fd, temp, p->length + PACKET_HEADERLENGTH);
+	free(temp);
+	return n;
+}

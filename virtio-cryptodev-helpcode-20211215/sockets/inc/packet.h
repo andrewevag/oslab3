@@ -1,7 +1,10 @@
+#ifndef PACKET_H
+#define PACKET_H
+
 #include "inttypes.h"
 #include <stdlib.h>
 
-#define HEADERLENGTH 34
+#define PACKET_HEADERLENGTH 34
 #define PACKET_TYPE_LENGTH 1
 #define PACKET_COMMAND_LENGTH 2
 #define PACKET_USERNAME_LENGTH 8
@@ -10,6 +13,19 @@
 #define PACKET_EXTRA_ARG_LENGTH 8
 #define PACKET_LENGTH_LENGTH 2
 #define PACKET_MAX_BODY_LENGTH 256
+
+
+#define PACKET_TYPE_OFFSET 0
+#define PACKET_COMMAND_OFFSET 1
+#define PACKET_USERNAME_OFFSET 3
+#define PACKET_PASSWORD_OFFSET 11
+#define PACKET_CHANNEL_OFFSET 19
+#define PACKET_EXTRA_ARG_OFFSET 27
+#define PACKET_LENGTH_OFFSET 35
+#define PACKET_BODY_OFFSET 37
+
+
+
 
 typedef enum PACKET_TYPE {
 	QUESTION, ANSWER
@@ -35,3 +51,4 @@ typedef struct packet{
 // packet p = (packet) {QUESTION, CREATE_USER, "andreas", "pass", NULL, NULL,0, NULL};
 
 
+#endif

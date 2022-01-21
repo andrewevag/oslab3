@@ -317,12 +317,24 @@ void packet_parse10_before(void)
 	char buf14[] = {'Q', 'C', 'U', 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'O', 'K', 'P', 'A', 'S', 'S', 'W', 'D', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	char buf15[] = {'Q', 'C', 'U', 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 0, 0, 0, 'w', 'r', 'o', 'n', 'g', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+	char buf16[] = {'Q', 'C', 0, 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'n', 'o', 't', 'w', 'r', 'o', 'n', 'g', 'k', 'a', 'n', 'a', 'l', 'i', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	char buf17[] = {'Q', 'C', 0, 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 0, 0, 0, 0, 0, 0, 0, 0, 'k', 'a', 'n', 'a', 'l', 'i', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	char buf18[] = {'Q', 'C', 0, 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'n', 'o', 't', 'w', 'r', 'o', 'n', 'g', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	char buf19[] = {'Q', 'C', 0, 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'k', 'a', 'n', 'a', 'l', 'i', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+	
+
 	insist_write(fd, buf10, sizeof(buf10));
 	insist_write(fd, buf11, sizeof(buf11));
 	insist_write(fd, buf12, sizeof(buf12));
 	insist_write(fd, buf13, sizeof(buf13));
 	insist_write(fd, buf14, sizeof(buf14));
 	insist_write(fd, buf15, sizeof(buf15));
+	insist_write(fd, buf16, sizeof(buf16));
+	insist_write(fd, buf17, sizeof(buf17));
+	insist_write(fd, buf18, sizeof(buf18));
+	insist_write(fd, buf19, sizeof(buf19));
+	
 	fd =  open("tempfile", O_RDONLY);
 	if(fd < 0){
 		perror("open failed");
@@ -419,7 +431,7 @@ void* packet_parse14(void* arg)
 void* packet_parse15(void* arg)
 {	
 	packet *p = packet_parse(fd);
-	if(lseek(fd, 5*37, SEEK_SET) < 0)
+	if(lseek(fd, 6*37, SEEK_SET) < 0)
 	{
 		perror("lseek failed");
 		exit(1);
@@ -434,6 +446,187 @@ void* packet_parse15(void* arg)
 		return NULL;
 	}
 }
+
+void* packet_parse16(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(strcmp(p->arg3, "kanali") == 0)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+void* packet_parse17(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(strcmp(p->arg3, "kanali") == 0)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+
+void* packet_parse18(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(lseek(fd, 19*37, SEEK_SET) < 0)
+	{
+		perror("lseek failed");
+		exit(1);
+	}
+	if(p == NULL)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+
+void* packet_parse19(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(lseek(fd, 20*37, SEEK_SET) < 0)
+	{
+		perror("lseek failed");
+		exit(1);
+	}
+	if(p == NULL)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+
+
+void packet_parse20_before(void* arg)
+{
+	close(fd);
+	fd = open("tempfile", O_CREAT | O_TRUNC| O_RDWR, S_IRWXU);
+	if(fd < 0){
+		perror("open failed\n");
+		exit(EXIT_FAILURE);
+	}
+	char buf20[] = {'Q', 'R', 0, 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'n', 'o', 't', 'w', 'r', 'o', 'n', 'g', 'k', 'a', 'n', 'a', 'l', 'i', 0, 0, '3', '2', 0, 0, 0, 0, 0, 0, 0, 0};
+	char buf21[] = {'Q', 'R', 0, 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'p', 'a', 's', 's', 'w', 'd', 0, 0, 'k', 'a', 'n', 'a', 'l', 'i', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	char buf22[] = {'Q', 'R', 0, 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'n', 'o', 't', 'w', 'r', 'o', 'n', 'g', 'k', 'a', 'n', 'a', 'l', 'i', 0, 0, 0, 0, 0, 0, 0, '3', '2', 0, 0, 0};
+	char buf23[] = {'Q', 'R', 0, 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'p', 'a', 's', 's', 'w', 'd', 0, 0, 'k', 'a', 'n', 'a', 'l', 'i', 0, 0, '1', '2', '3', 0, 0, 0, 0, 0, 0, 0};
+
+	insist_write(fd, buf20, sizeof(buf20));
+	insist_write(fd, buf21, sizeof(buf21));
+	insist_write(fd, buf22, sizeof(buf22));
+	insist_write(fd, buf23, sizeof(buf23));
+	fd =  open("tempfile", O_RDONLY);
+	if(fd < 0){
+		perror("open failed");
+		return NULL;
+	}
+}
+
+
+void* packet_parse20(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(p->id == 32)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+void* packet_parse21(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(p->id == 0)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+void* packet_parse22(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(p->id == 0)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+void* packet_parse23(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(p->id == 123)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+
+
+
+void packet_parse24_before(void* arg)
+{
+	close(fd);
+	fd = open("tempfile", O_CREAT | O_TRUNC| O_RDWR, S_IRWXU);
+	if(fd < 0){
+		perror("open failed\n");
+		exit(EXIT_FAILURE);
+	}
+	char buf24[] = {'Q', 'S', 0, 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'p', 'a', 's', 's', 'w', 'd', 0, 0, 'k', 'a', 'n', 'a', 'l', 'i', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 'h', 'e', 'l', 'l', 'o', ' ', 'p', 'e', 'o', 'p', 'l', 'e', ' ', 'h', 'e', 'r', 'e', ' ', 'w', 'e', ' ', 'g', 'o'};
+	insist_write(fd, buf24, sizeof(buf24));
+	
+
+	fd =  open("tempfile", O_RDONLY);
+	if(fd < 0){
+		perror("open failed");
+		return NULL;
+	}
+}
+
+
+void* packet_parse24(void* arg)
+{	
+	packet *p = packet_parse(fd);
+	if(p->length == 23 && strcmp(p->body, "hello people here we go") == 0)
+	{
+		res = 1;
+		return NULL;
+	}
+	else{
+		res = 0;
+		return NULL;
+	}
+}
+
 // TESTING CONFIGS AND PARAMETERS
 // void (*befores[])(void) = {ssi_clientTestBefore, NULL, NULL};
 // void* (*tests[])(void*) = {ssi_clientTest, ssi_serverTest, insist_read_test};
@@ -443,14 +636,22 @@ void* packet_parse15(void* arg)
 
 
 //TESTING PARSER SUITE
-void (*befores[])(void) = {packet_parse1_before, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, packet_parse10_before, NULL, NULL, NULL, NULL, NULL};
+void (*befores[])(void) = {packet_parse1_before, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, packet_parse10_before, NULL, NULL, NULL, NULL, NULL
+, NULL, NULL, NULL, NULL, packet_parse20_before, NULL, NULL, NULL, packet_parse24_before};
 void* (*tests[])(void*) = {packet_parse0,packet_parse1, packet_parse2, packet_parse3,packet_parse4, packet_parse5,
-packet_parse6,packet_parse7, packet_parse8, packet_parse9, packet_parse10, packet_parse11, packet_parse12, packet_parse13, packet_parse14, packet_parse15};
-void (*afters[])(void) = {NULL,  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+packet_parse6,packet_parse7, packet_parse8, packet_parse9, packet_parse10, packet_parse11, packet_parse12, packet_parse13, packet_parse14, packet_parse15,
+packet_parse16, packet_parse17, packet_parse18, packet_parse19,
+packet_parse20, packet_parse21, packet_parse22, packet_parse23, packet_parse24};
+void (*afters[])(void) = {NULL,  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 char* testnames[] = {"Q test", "A test", "Should fail test", "Create Channel Test", "Create User Test", 
 "Read Test", "Send test", "Server failure test", "Server Success Test", "Uknown command test", 
 "Wrong username (all 0)", "Correct username", "Wrong username (starting with 0)",
-"Wrong password (all 0)", "Correct password", "Wrong password (starting with 0)"};
+"Wrong password (all 0)", "Correct password", "Wrong password (starting with 0)", 
+"Channel w/ passwd should be correct??", "Channel w/ passwd should be correct",
+"Channel all 0", "Channel (starting with 0)",
+"Id 32", "Id all 0", "Id (starting 0)", "Id 123", 
+"MSG hello"};
 
 
 int successes  = 0;
