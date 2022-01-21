@@ -61,44 +61,72 @@ void command(struct state * state)
     char t[PACKET_COMMAND_LENGTH];
 	insist_read(state->fd, &t, sizeof(t));
 
+	char cubf[] = {'Q', 'U'};
+	char ccbf[] = {'C', 0};
+	char cabf[] = {'A', 0};
+	char csbf[] = {'S', 0};
+	char crbf[] = {'R', 0};
+	char cfbf[] = {'F', 0};
+
 	//.
-	if(memcmp(t, "CU", PACKET_COMMAND_LENGTH) == 0){
-		state->p.command = CREATE_USER;
-	}
-	else if(memcmp(t, (char[]){'C', 0}, PACKET_COMMAND_LENGTH)){
-		state->p.command = CREATE_CHANNEL;
-	}
-	else if(memcmp(t, (char[]){'A', 0}, PACKET_COMMAND_LENGTH)){
-		state->p.command = ADD_USER;
-	}
-	else if(memcmp(t, (char[]){'S', 0}, PACKET_COMMAND_LENGTH)){
-		state->p.command = SEND;
-	}
-	else if(memcmp(t, (char[]){'R', 0}, PACKET_COMMAND_LENGTH)){
-		state->p.command = READ;
-	}
-	else{
-		sprintf(state->errmsg, "[packet_parser] @command unknown command\n");
-		state->next = NULL;
-		state->done = false;
-	}
+	if(state->p.packet_type == QUESTION){
+		if(memcmp(t, cubf, PACKET_COMMAND_LENGTH) == 0){
+			state->p.command = CREATE_USER;
+		}
+		else if(memcmp(t, ccbf, PACKET_COMMAND_LENGTH)){
+			state->p.command = CREATE_CHANNEL;
+		}
+		else if(memcmp(t, cabf, PACKET_COMMAND_LENGTH)){
+			state->p.command = ADD_USER;
+		}
+		else if(memcmp(t, csbf, PACKET_COMMAND_LENGTH)){
+			state->p.command = SEND;
+		}
+		else if(memcmp(t, crbf, PACKET_COMMAND_LENGTH)){
+			state->p.command = READ;
+		}
+		else{
+			sprintf(state->errmsg, "[packet_parser] @command unknown command\n");
+			state->next = NULL;
+			state->done = false;
+		}
 
-	state->next = arg1;
-	return;
+		state->next = arg1;
+		return;
+	}else{
+		if(memcmp(t, csbf, PACKET_COMMAND_LENGTH)){
+			state->p.command = SERVER_SUCCESS;
+		}
+		else if(memcmp(t, cfbf, PACKET_COMMAND_LENGTH)){
+			state->p.command = SERVER_FAILURE;
+		}
+		else{
+			sprintf(state->errmsg, "[packet_parser] @command unknown command\n");
+			state->next = NULL;
+			state->done = false;
+		}
 
+		state->next = arg1;
+		return;
+	}
 }
 
 void arg1(struct state * state)
 {
     char t[PACKET_USERNAME_LENGTH];
 	insist_read(state->fd, &t, sizeof(t));
-
-	if(!check_valid_field(t, PACKET_USERNAME_LENGTH)){
-		sprintf(state->errmsg, "[packet_parser] @arg1 nonvalid username\n");
-		state->next = NULL;
-		state->done = false;
-	}
-	else{
+	if( state->p.packet_type == QUESTION){
+		if(!check_valid_field(t, PACKET_USERNAME_LENGTH)){
+			sprintf(state->errmsg, "[packet_parser] @arg1 nonvalid username\n");
+			state->next = NULL;
+			state->done = false;
+		}
+		else{
+			memset(state->p.arg1, 0, sizeof(state->p.arg1));
+			memcpy(state->p.arg1, t, sizeof(t));
+			state->next = arg2;
+		}
+	}else{
 		memset(state->p.arg1, 0, sizeof(state->p.arg1));
 		memcpy(state->p.arg1, t, sizeof(t));
 		state->next = arg2;
@@ -109,26 +137,31 @@ void arg2(struct state * state)
 {
     char t[PACKET_PASSWORD_LENGTH];
 	insist_read(state->fd, &t, sizeof(t));
+	if(state->p.packet_type == QUESTION){
+		if(state->p.command != CREATE_CHANNEL){
+			
+			if(!check_valid_field(t, PACKET_PASSWORD_LENGTH)){
+				sprintf(state->errmsg, "[packet_parser] @arg2 nonvalid password\n");
+				state->next = NULL;
+				state->done = false;
+				return;
+			}
 
-	if(state->p.command != CREATE_CHANNEL){
-		
-		if(!check_valid_field(t, PACKET_PASSWORD_LENGTH)){
-			sprintf(state->errmsg, "[packet_parser] @arg2 nonvalid password\n");
-			state->next = NULL;
-			state->done = false;
+			memset(state->p.arg2, 0, sizeof(state->p.arg2));
+			memcpy(state->p.arg2, t, sizeof(t));
+			state->next = arg3;
 			return;
 		}
-
+		else{
+			memset(state->p.arg2, 0, sizeof(state->p.arg2));
+			memcpy(state->p.arg2, t, sizeof(t));
+			state->next = arg3;
+			
+		}
+	}else{
 		memset(state->p.arg2, 0, sizeof(state->p.arg2));
 		memcpy(state->p.arg2, t, sizeof(t));
 		state->next = arg3;
-		return;
-	}
-	else{
-		memset(state->p.arg2, 0, sizeof(state->p.arg2));
-		memcpy(state->p.arg2, t, sizeof(t));
-		state->next = arg3;
-		
 	}
 }
 
@@ -156,6 +189,7 @@ void arg3(struct state * state)
 		//you have a CU, Success, of FAILURE COMMAND
 		state->next = arg4;
 		memset(state->p.arg3, 0, sizeof(state->p.arg3));
+		memcpy(state->p.arg3, t, sizeof(t));
 	}
 }
 
