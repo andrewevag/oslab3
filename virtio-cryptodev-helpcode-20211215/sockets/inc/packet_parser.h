@@ -48,7 +48,8 @@ char* body);
  * @param fd file descriptor
  * @return int -1 if failed insist_write is used.
  */
-int send_packet(packet* p, int fd);
+int send_packet(packet p, int fd);
+
 
 
 #endif

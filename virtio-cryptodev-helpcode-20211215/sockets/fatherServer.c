@@ -58,6 +58,8 @@ void int_handler(int signum)
 int main(){
 	
 	int newsd;
+	char tempbuf[20];
+	char tempbuf2[20];
 	/* Make sure a broken connection doesn't kill us */
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGCHLD, child_handler);
@@ -74,9 +76,10 @@ int main(){
 	while(1) {
 		newsd = ssi_server_accept(s);
 		printf("[father] got new client @%d\n", newsd);
-		char tempbuf[20];
+		
 		sprintf(tempbuf, "%d", newsd);
-		char* args[] = {"./childServer", tempbuf, socketname ,NULL};
+		sprintf(tempbuf2, "%d", s->ssi_fd);
+		char* args[] = {"./childServer", tempbuf, socketname, tempbuf2,NULL};
 		subprocesscall("./childServer", args);
 		sleep(1);
 		close(newsd);

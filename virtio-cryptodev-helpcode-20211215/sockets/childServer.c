@@ -28,6 +28,9 @@ int main(int argc, char** argv){
 	errorcheck(isNumber(argv[1]), false, "[child] invalid socket @type : Not A number");
 	
 	int newsd = atoi(argv[1]);
+	//close inherited server
+	close(atoi(argv[3]));
+	
 	char * socketname = argv[2];
 	printf("[child] is handling client @%d \n", newsd);
 	packet tempp;

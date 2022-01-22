@@ -417,10 +417,8 @@ char* body)
 
 
 
-int send_packet(packet* p, int fd)
+int send_packet(packet p, int fd)
 {
-	char* temp = packet_format(p);
-	int n = insist_write(fd, temp, p->length + PACKET_HEADERLENGTH);
-	free(temp);
+	int n =  insist_write(fd, &p, sizeof(p));
 	return n;
 }
