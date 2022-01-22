@@ -39,6 +39,38 @@ int main(int argc, char** argv)
 	insist_read(s->ssi_fd, &p, sizeof(p));
 	printf("%s\n", p.body);
 
+	p = packetC("andreas", "ch0");
+	printf("insist write returned %ld\n", insist_write(s->ssi_fd, &p, sizeof(p)));
+
+	insist_read(s->ssi_fd, &p, sizeof(p));
+	printf("%s\n", p.body);
+
+	p = packetC("andreas", "ch0");
+	printf("insist write returned %ld\n", insist_write(s->ssi_fd, &p, sizeof(p)));
+
+	insist_read(s->ssi_fd, &p, sizeof(p));
+	printf("%s\n", p.body);
+
+	p = packetA("andreas", "passwd", "ch0", "nikol");
+	printf("insist write returned %ld\n", insist_write(s->ssi_fd, &p, sizeof(p)));
+
+	insist_read(s->ssi_fd, &p, sizeof(p));
+	printf("%s\n", p.body);
+
+	p = packetS("andreas", "passwd", "ch0", "hellooooo");
+	printf("insist write returned %ld\n", insist_write(s->ssi_fd, &p, sizeof(p)));
+
+	insist_read(s->ssi_fd, &p, sizeof(p));
+	printf("%s\n", p.body);
+
+	p = packetR("andreas", "passwd", "ch0", 0);
+	printf("insist write returned %ld\n", insist_write(s->ssi_fd, &p, sizeof(p)));
+
+	insist_read(s->ssi_fd, &p, sizeof(p));
+	printf("%s\n", p.body);
+
+	
+
 	ssi_close(s);
 	return 0;
 }

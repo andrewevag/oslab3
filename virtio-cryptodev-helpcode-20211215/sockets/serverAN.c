@@ -98,6 +98,9 @@ packet AN_protocol_execute(packet* p)
 	if(p->command == CREATE_USER)
 	{
 		//add user to user list
+		if(checkUserExistance(p->arg1)){
+			return packetServerS("User already exists");
+		}
 		userlist = cons(user_constructor(p->arg1, p->arg2), userlist);
 		printf("[director] Created user with username : %s, password : %s\n", ((user*)head(userlist))->username, ((user*)head(userlist))->password);
 		printf("list length %d\n", listlength(userlist));
