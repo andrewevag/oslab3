@@ -6,15 +6,15 @@ A struct is passed accross that has every possible type of commands and/or respo
 The struct is described in ./inc/packet.h and is the following :
 
 ```C
-typedef enum PACKET_TYPE {
+enum PACKET_TYPE {
 	QUESTION, ANSWER
 } PACKET_TYPE ;
 
-typedef enum COMMAND_TYPE{
+enum COMMAND_TYPE{
 	CREATE_USER, CREATE_CHANNEL, ADD_USER, SEND, READ, SERVER_SUCCESS, SERVER_FAILURE
 } COMMAND_TYPE;
 
-typedef struct {
+struct {
 	uint8_t packet_type;// 1 byte
 	uint8_t command;	// 1 byte
 	char arg1[8];       // 8 bytes
