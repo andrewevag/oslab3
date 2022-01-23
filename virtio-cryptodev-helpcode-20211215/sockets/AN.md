@@ -55,7 +55,7 @@ typedef struct {
 Λειτουργεί ως βάση δεδοένων και αποδέχεται συνδέσεις από παιδιά τις οποίες επεξεργάζεται και επιστρέφει ανάλογο feedback.
 
 ## Διάγραμμα :
-
+![ServerArchitecure](AN/serverArchitecture.drawio.png)
 ---
 
 ---

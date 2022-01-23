@@ -183,7 +183,8 @@ packet AN_protocol_execute(packet* p)
 			printf("[director] user %s does not have access to %s\n", p->arg1, req->name);
 			return packetServerF("Access denied for that channel");
 		}
-		memcpy(buf, p->body, p->length);
+		// memcpy(buf, p->body, p->length);
+		snprintf(buf,5+strlen(p->arg1)+p->length ,"[%s]\t %s", p->arg1, p->body);
 		int previousId = (req->messagelist == emptyList) ? -1 : (((message*)head(req->messagelist))->id);
 		req->messagelist = cons( message_constructor(++previousId, buf , user_constructor(p->arg1, "")) , req->messagelist);
 		printf("[director] msg = %s to %s\n", (((message*)(head(req->messagelist)))->text), req->name);
