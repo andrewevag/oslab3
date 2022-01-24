@@ -79,7 +79,7 @@ int main(){
 		
 		sprintf(tempbuf, "%d", newsd);
 		sprintf(tempbuf2, "%d", s->ssi_fd);
-		char* args[] = {"./childServer", tempbuf, socketname, tempbuf2,NULL};
+		char* args[] = {"./childServer", tempbuf, socketname, tempbuf2, NULL};
 		subprocesscall("./childServer", args);
 		sleep(1);
 		close(newsd);
