@@ -25,112 +25,6 @@
 #include "packet.h"
 #include "packet_parser.h"
 
-<<<<<<< HEAD
-
-#include "ANutils/linkedlist.h"
-#include "ANutils/channel.h"
-#include "ANutils/user.h"
-#include "ANutils/message.h"
-#define MAX_MSIZE 4096
-
-
-/* Convert a buffer to upercase */
-void toupper_buf(char *buf, size_t n)
-{
-	size_t i;
-
-	for (i = 0; i < n; i++)
-		buf[i] = toupper(buf[i]);
-}
-
-
-/* Insist until all of the data has been written */
-ssize_t insist_write(int fd, const void *buf, size_t cnt)
-{
-	ssize_t ret;
-	size_t orig_cnt = cnt;
-	
-	while (cnt > 0) {
-	        ret = write(fd, buf, cnt);
-	        if (ret < 0)
-	                return ret;
-	        buf += ret;
-	        cnt -= ret;
-	}
-
-	return orig_cnt;
-}
-
-
-void safe_write(int fd, const void *buf, size_t cnt){
-	errorcheck(insist_write(fd, buf, cnt) <0, 1, "failed to send @safe write");
-}
-#define const_safe_write(fd, cswbuf) safe_write(fd, cswbuf, sizeof(cswbuf))
-
-int splitToWords(char* str, int length,char** words, int maxwords){
-	// "delimiters are \n and space"
-	int numofwords = 0;
-	words[numofwords++] = str; 
-	for(int i = 0; i < length; i++)
-	{	
-		if(str[i] == ' ' || str[i] == '\n' )
-		{
-			str[i++] = 0;
-			while(str[i] == ' ' || str[i] == '\n'){
-				i++;
-			}
-			words[numofwords++] = &(str[i]);
-			if(numofwords >= maxwords){
-				return numofwords-1;
-			}
-		}
-	}
-	return numofwords-1;
-}
-
-list* splitToPackets(char* str, int length, int* restleft)
-{
-	list* l = emptyList;
-	int i,j;
-	for(i = 0, j = 0; j < length; j++){
-		if(str[j] == '|'){
-			char* start = &(str[i]);
-			j++;
-			int size = j-i+1;
-			l = cons(message_constructor_size(start,size),l);
-			j += 2;
-			i = j;
-		}
-	}
-	j = 0;
-	while(i < length){
-		str[j++] = str[i];
-		i++;
-	}
-	*restleft = j;
-
-	l = reverse(l);
-	return l;
-}
-/*
- * Arguments are commands
- * REQUESTS TO SERVER
- * <username> C <channelname> | 
- * <username> A <password> <channel> <user> |
- * <username> CU <password> |
- * <username> S <password> <channel> <msg> =<...msg> |
- * <username> R <password> <channel>  <msgnumber> |
- * 
- * 
- * RESPONSES FROM SERVER
- * REQUEST DONE |
- * REQUEST FAILED |
- * MSG <channel name> <number>
- * <...> |
- * NO MORE MESSAGES
- */
-=======
->>>>>>> 9d03f7f487ca1a0ffdfb192bc1e848bd23f45ad9
 list* userlist;
 list* channellist;
 void AN_protocol_setup()
@@ -199,28 +93,9 @@ bool checkUserExistance(char* usrname)
 #define MSGNUM 4
 packet AN_protocol_execute(packet* p)
 {
-<<<<<<< HEAD
-	for(int i =0; i < bytesread+1; i++)
-	{
-		if(original_msg[i]=='|'){
-			original_msg[++i] = 0;
-			break;
-		}
-	}
-	char buf[2*MAX_MSIZE];
-	printf("got here with %d\n", numofwords);
-	if(numofwords < 4)
-	{
-		printf("wrong command\n");
-		goto exitfault;
-		
-	}
-	if(strcmp(words[COMMAND], "CU") == 0)
-=======
 	char buf[BUFSIZ];
 	memset(buf, 0, sizeof(buf));
 	if(p->command == CREATE_USER)
->>>>>>> 9d03f7f487ca1a0ffdfb192bc1e848bd23f45ad9
 	{
 		//add user to user list
 		if(checkUserExistance(p->arg1)){
@@ -357,15 +232,8 @@ packet AN_protocol_execute(packet* p)
 	}
 	else
 	{
-<<<<<<< HEAD
-exitfault:
-		const_safe_write(sock, "REQUEST FAILED |");
-		printf("failed command\n");
-		return -1;
-=======
 		printf("[director] failed command\n");
 		return packetServerF("Failed Question");
->>>>>>> 9d03f7f487ca1a0ffdfb192bc1e848bd23f45ad9
 	}
 
 }
@@ -377,107 +245,6 @@ int main(int argc, char** argv)
 	printf("[director] socketname = %s\n", argv[1]);
 	char* socketname = argv[1];
 	AN_protocol_setup();
-<<<<<<< HEAD
-	/* Make sure a broken connection doesn't kill us */
-	signal(SIGPIPE, SIG_IGN);
-
-	/* Create TCP/IP socket, used as main chat channel */
-	if ((sd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-		perror("socket");
-		exit(1);
-	}
-	fprintf(stderr, "Created TCP socket\n");
-
-	/* Bind to a well-known port */
-	memset(&sa, 0, sizeof(sa));
-	sa.sin_family = AF_INET;
-	sa.sin_port = htons(TCP_PORT);
-	sa.sin_addr.s_addr = htonl(INADDR_ANY);
-	if (bind(sd, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
-		perror("bind");
-		exit(1);
-	}
-	fprintf(stderr, "Bound TCP socket to port %d\n", TCP_PORT);
-
-	/* Listen for incoming connections */
-	if (listen(sd, TCP_BACKLOG) < 0) {
-		perror("listen");
-		exit(1);
-	}
-
-	/* Loop forever, accept()ing connections */
-	while(1) {
-
-		fprintf(stderr, "Waiting for an incoming connection...\n");
-
-		/* Accept an incoming connection */
-		len = sizeof(struct sockaddr_in);
-		if ((newsd = accept(sd, (struct sockaddr *)&sa, &len)) < 0) {
-			perror("accept");
-			exit(1);
-		}
-		if (!inet_ntop(AF_INET, &sa.sin_addr, addrstr, sizeof(addrstr))) {
-			perror("could not format IP address");
-			exit(1);
-		}
-		fprintf(stderr, "Incoming connection from %s:%d\n",
-			addrstr, ntohs(sa.sin_port));
-		
-
-		//ACTUAL HANDLING OF CLIENT.
-		
-		//Variables used for handling a customer
-		for(int i = 0; i < MAX_MSIZE; i++) buf[i] = 0;
-		char* words[MAX_MSIZE];
-		/* We break out of the loop when the remote peer goes away */
-		while(1) {
-			// | msg ends at this character.
-			//maximum message length 
-			int readbytes = 0;
-			
-			while(strchr(buf, '|') == NULL){
-				n = read(newsd, buf+readbytes, sizeof(buf));
-				readbytes+=n;
-				if (n <= 0) {
-					if (n < 0){
-						perror("read from remote peer failed");
-						goto exit;
-					}
-					else{
-						fprintf(stderr, "Peer went away\n");
-						goto exit;
-					}
-					
-				}
-				
-			}
-			
-			// memcpy(bufcpy, buf, readbytes);
-			// int numofwords = splitToWords(buf, readbytes, words, MAX_MSIZE);
-			
-			//IMPLEMENTING PROTOCOL...
-			int readbytes2, numofwords;
-			list* packetList = splitToPackets(buf, readbytes, &readbytes2);
-			forEachList(packetList, packet)
-			{
-				message* msg = getData(packet);
-				memcpy(bufcpy, msg->text, strlen(msg->text));
-				numofwords = splitToWords(msg->text, strlen(msg->text), words, MAX_MSIZE);
-				AN_protocol_execute(newsd, bufcpy, strlen(msg->text), words, numofwords);
-			}
-			deleteList(tail(packetList), (void (*)(void*))message_destructor_size);
-			printf("got here\n");
-			message_destructor_size(head(packetList));
-			packetList = emptyList;
-			memset(buf, 0, sizeof(buf));
-			memset(bufcpy, 0, sizeof(bufcpy));
-			
-		}
-exit:
-		/* Make sure we don't leak open files */
-		if (close(newsd) < 0)
-			perror("close");
-=======
 	
 	SSI* s = ssi_un_open(socketname, true, MAX_CLIENT_QUEUE);
 	packet p, response;
@@ -491,7 +258,6 @@ exit:
 		response = AN_protocol_execute(&p);
 		insist_write(client, &response, sizeof(response));
 		close(client);
->>>>>>> 9d03f7f487ca1a0ffdfb192bc1e848bd23f45ad9
 	}
 }
 

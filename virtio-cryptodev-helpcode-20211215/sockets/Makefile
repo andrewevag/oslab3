@@ -22,11 +22,7 @@ OBJECTS = $(patsubst $(SRC)%.c, $(OBJ)%.o, $(SOURCE))
 # OBJECTS += server.o
 
 # BINS = socket-server socket-client
-<<<<<<< HEAD
-BINS = serverAN clientAN
-=======
 BINS = fatherServer childServer serverAN client
->>>>>>> 9d03f7f487ca1a0ffdfb192bc1e848bd23f45ad9
 
 all: $(BINS)
 
@@ -35,27 +31,14 @@ all: $(BINS)
 fatherServer: $(OBJECTS) fatherServer.o
 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
 
-<<<<<<< HEAD
-socket-client: socket-client.c socket-common.h 
-	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
-=======
 childServer: $(OBJECTS) childServer.o
 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
->>>>>>> 9d03f7f487ca1a0ffdfb192bc1e848bd23f45ad9
 
 serverAN: $(OBJECTS) serverAN.o
 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
 
-<<<<<<< HEAD
-clientAN: clientAN.o linkedlist.o message.o user.o channel.o socket-common.h
-	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBS)
-
-clienAN.o: clienAN.c
-	$(CC) -c  $(INCLUDE) $(CFLAGS) $^ $(LIBS)
-=======
 client: $(OBJECTS) client.o
 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
->>>>>>> 9d03f7f487ca1a0ffdfb192bc1e848bd23f45ad9
 
 clean:
 	rm -f *.o *~ $(BINS) $(OBJ)*.o $(TEST)bin/* directorSocket
