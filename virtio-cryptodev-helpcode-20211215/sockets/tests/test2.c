@@ -7,7 +7,8 @@
 #include <signal.h>
 #include <string.h>
 #include <fcntl.h>
-
+#include "cryptops.h"
+#include "socket-common.h"
 
 // #include "packet.h"
 #include "packet_parser.h"
@@ -27,9 +28,39 @@ void testsetup()
 {
 }
 
+static int fill_urandom_buf(unsigned char *buf, size_t cnt)
+{
+        int crypto_fd;
+        int ret = -1;
+
+        crypto_fd = open("/dev/urandom", O_RDONLY);
+        if (crypto_fd < 0)
+                return crypto_fd;
+
+        ret = insist_read(crypto_fd, buf, cnt);
+        close(crypto_fd);
+
+        return ret;
+}
+
+
+
 void* check1(void* arg)
 {
+	unsigned char buffer[DATA_SIZE];
+	unsigned char encrypted[DATA_SIZE];
+	unsigned char decrypted[DATA_SIZE];
+	errorcheck(fill_urandom_buf(buffer,DATA_SIZE),-1,"getting data from /dev/urandom\n")
 	
+	encryption(buffer,encrypted,DATA_SIZE);
+	decryption(encrypted,decrypted,DATA_SIZE);
+
+	/* Verify the result */
+	if (memcmp(buffer, decrypted, sizeof(buffer)) != 0) {
+		res = 0;
+	} else
+		res = 1;
+
 	return NULL;
 }
 
@@ -71,7 +102,7 @@ void* check2(void* arg)
 
 //TESTING PARSER SUITE
 void (*befores[])(void) = {NULL, NULL};
-void* (*tests[])(void*) = {check1, check2};
+void* (*tests[])(void*) = {check1};
 void (*afters[])(void) = {NULL, NULL};
 char* testnames[] = {"CU msg", "Variable msg send"};
 
