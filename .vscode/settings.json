@@ -4,6 +4,7 @@
 		"*.8085": "TASM-8085",
 		"linkedlist.h": "c",
 		"sstream": "c",
-		"astring.h": "c"
+		"astring.h": "c",
+		"unistd.h": "c"
 	}
 }

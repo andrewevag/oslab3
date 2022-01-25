@@ -15,10 +15,14 @@ CFLAGS += -g
 INC = inc/
 SRC = src/
 OBJ = obj/
+CRYPTO = crypto/
 LIBS = -lpthread
 INCLUDE = -I$(PWD)/$(INC)
+INCLUDE += -I$(PWD)/$(CRYPTO)
 SOURCE = $(wildcard $(SRC)*.c)
+SOURCE += $(wildcard $(CRYPTO)*.c)
 OBJECTS = $(patsubst $(SRC)%.c, $(OBJ)%.o, $(SOURCE))
+OBJECTS += $(patsubst $(CRYPTO)%.c, $(OBJ)%.o, $(SOURCE))
 # OBJECTS += server.o
 
 # BINS = socket-server socket-client
@@ -47,6 +51,10 @@ socket-common.h:
 
 $(OBJ)%.o: $(SRC)%.c	
 	$(CC) -c $(CFLAGS) $(INCLUDE) $^ -o $@
+
+$(OBJ)%.o: $(CRYPTO)%.c	
+	$(CC) -c $(CFLAGS) $(INCLUDE) $^ -o $@
+
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $^ $(INCLUDE) $(LIBS)

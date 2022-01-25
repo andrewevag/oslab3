@@ -7,6 +7,8 @@
 #include <signal.h>
 #include <string.h>
 #include <fcntl.h>
+
+
 // #include "packet.h"
 #include "packet_parser.h"
 #include "linkedlist.h"
@@ -27,25 +29,7 @@ void testsetup()
 
 void* check1(void* arg)
 {
-	char buf[] = {'Q', 'C', 'U', 'a', 'n', 'd', 'r', 'e', 'a', 's', 0, 'p', 'a', 's', 's', 'w', 'd', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	packet p;
-	memset(&p, 0, sizeof(p));
-	p.packet_type = QUESTION;
-	p.command = CREATE_USER;
-	memcpy(p.arg1, "andreas", sizeof("andreas"));
-	memcpy(p.arg2, "passwd", sizeof("passwd"));
-	p.length = 0;
-	char* ret = packet_format(&p);
-	if(ret == NULL){
-		res = 0;
-		return NULL;
-	}else{
-		if(memcmp(buf, ret, sizeof(buf))== 0){
-			res = 1;
-			return NULL;
-		}
-	}
-	res = 0;
+	
 	return NULL;
 }
 
