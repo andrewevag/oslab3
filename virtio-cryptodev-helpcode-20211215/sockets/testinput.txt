@@ -1,0 +1,2 @@
+andr passwd create ch0 send ch0 helloooo 
+exit
