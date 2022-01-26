@@ -68,10 +68,10 @@ void* check2(void* arg)
 {
 	int fd = open("tempfile", O_CREAT | O_RDWR | O_TRUNC, S_IRWXU);
 	errorcheck(fd, -1, "open file test");
-	packet p = packetCU("gkrinia","nusta1");
+	char p[] = KEY;
 	errorcheck(encrypt_insist_write(fd,&p,sizeof(p)),-1,"encrypt insist write error");
 	printf("write return\n");
-	packet q;
+	char q[16];
 	errorcheck(decrypt_insist_read(fd,&q,sizeof(q)),-1, "decrypt insist read error");
 	if(memcmp(&p,&q,sizeof(q)) != 0){
 		res = 0;
