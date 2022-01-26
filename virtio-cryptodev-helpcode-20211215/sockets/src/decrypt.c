@@ -18,7 +18,7 @@
  */
 void decryption(unsigned char* input, unsigned char* output,int size){
     int fd = open("/dev/crypto", O_RDWR);
-    errorcheck(fd,-1,"open(/dev/crypto)");
+    errorcheck(fd,-1,"open(/dev/crypto) {decrypt}");
 
     unsigned char key[] = KEY;
     unsigned char iv[] = IV;
@@ -36,7 +36,7 @@ void decryption(unsigned char* input, unsigned char* output,int size){
 	sess.keylen = KEY_SIZE;
 	sess.key = key;
 
-	errorcheck(!ioctl(fd, CIOCGSESSION, &sess),0, "ioctl(CIOCGSESSION)" );
+	errorcheck(!ioctl(fd, CIOCGSESSION, &sess),0, "ioctl(CIOCGSESSION) {decrypt}" );
 
 
     /*
@@ -50,10 +50,10 @@ void decryption(unsigned char* input, unsigned char* output,int size){
 	cryp.iv = iv;
 	cryp.op = COP_DECRYPT;
 
-	errorcheck(!ioctl(fd, CIOCCRYPT, &cryp),0, "ioctl(CIOCCRYPT)" );
+	errorcheck(!ioctl(fd, CIOCCRYPT, &cryp),0, "ioctl(CIOCCRYPT) {decrypt}" );
 
     /*Finish crypto session*/
-    errorcheck(!ioctl(fd, CIOCFSESSION, &sess.ses),0,"ioctl(CIOCFSESSION)");
+    errorcheck(!ioctl(fd, CIOCFSESSION, &sess.ses),0,"ioctl(CIOCFSESSION) {decrypt}");
 
     errorcheck(close(fd),-1,"close(/dev/crypto)");
 

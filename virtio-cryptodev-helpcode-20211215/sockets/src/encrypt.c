@@ -17,7 +17,7 @@
  */
 void encryption(unsigned char* input, unsigned char* output,int size){
     int fd = open("/dev/crypto", O_RDWR);
-    errorcheck(fd,-1,"open(/dev/crypto)");
+    errorcheck(fd,-1,"open(/dev/crypto) {encrypt}");
 
     unsigned char key[] = KEY;
     unsigned char iv[] = IV;
@@ -35,7 +35,7 @@ void encryption(unsigned char* input, unsigned char* output,int size){
 	sess.keylen = KEY_SIZE;
 	sess.key = key;
 
-	errorcheck(!ioctl(fd, CIOCGSESSION, &sess),0, "ioctl(CIOCGSESSION)" );
+	errorcheck(!ioctl(fd, CIOCGSESSION, &sess),0, "ioctl(CIOCGSESSION) {encrypt}" );
 
     /*
 	 * Encrypt input to output
@@ -47,11 +47,11 @@ void encryption(unsigned char* input, unsigned char* output,int size){
 	cryp.iv = iv;
 	cryp.op = COP_ENCRYPT;
 
-	errorcheck(!ioctl(fd, CIOCCRYPT, &cryp),0, "ioctl(CIOCCRYPT)" );
+	errorcheck(!ioctl(fd, CIOCCRYPT, &cryp),0, "ioctl(CIOCCRYPT) {encrypt}" );
 
     /*Finish crypto session*/
-    errorcheck(!ioctl(fd, CIOCFSESSION, &sess.ses),0,"ioctl(CIOCFSESSION)");
+    errorcheck(!ioctl(fd, CIOCFSESSION, &sess.ses),0,"ioctl(CIOCFSESSION) {encrypt}");
 
-    errorcheck(close(fd),-1,"close(/dev/crypto)");
+    errorcheck(close(fd),-1,"close(/dev/crypto) {encrypt}");
 
 }
