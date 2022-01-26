@@ -19,6 +19,7 @@ CRYPTO = crypto/
 LIBS = -lpthread
 INCLUDE = -I$(PWD)/$(INC)
 INCLUDE += -I$(PWD)/$(CRYPTO)
+INCLUDE += -I$(PWD)/
 SOURCE = $(wildcard $(SRC)*.c)
 SOURCE += $(wildcard $(CRYPTO)*.c)
 OBJECTS = $(patsubst $(SRC)%.c, $(OBJ)%.o, $(SOURCE))
