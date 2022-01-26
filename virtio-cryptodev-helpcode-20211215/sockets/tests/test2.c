@@ -50,7 +50,7 @@ void* check1(void* arg)
 	unsigned char buffer[DATA_SIZE];
 	unsigned char encrypted[DATA_SIZE];
 	unsigned char decrypted[DATA_SIZE];
-	errorcheck(fill_urandom_buf(buffer,DATA_SIZE),-1,"getting data from /dev/urandom\n")
+	errorcheck(fill_urandom_buf(buffer,DATA_SIZE),-1,"getting data from /dev/urandom\n");
 	
 	encryption(buffer,encrypted,DATA_SIZE);
 	decryption(encrypted,decrypted,DATA_SIZE);
@@ -64,37 +64,37 @@ void* check1(void* arg)
 	return NULL;
 }
 
-void* check2(void* arg)
-{
-	char buf[] = {'Q', 'S', 0, 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'p', 'a', 's', 's', 'w', 'd', 0, 0, 'k', 'a', 'n', 'a', 'l', 'i', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 'h', 'e', 'l', 'l', 'o', ' ', 'p', 'e', 'o', 'p', 'l', 'e', ' ', 'h', 'e', 'r', 'e', ' ', 'w', 'e', ' ', 'g', 'o'};
+// void* check2(void* arg)
+// {
+// 	char buf[] = {'Q', 'S', 0, 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'p', 'a', 's', 's', 'w', 'd', 0, 0, 'k', 'a', 'n', 'a', 'l', 'i', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 'h', 'e', 'l', 'l', 'o', ' ', 'p', 'e', 'o', 'p', 'l', 'e', ' ', 'h', 'e', 'r', 'e', ' ', 'w', 'e', ' ', 'g', 'o'};
 
-	packet p;
-	memset(&p, 0, sizeof(p));
-	p.packet_type = QUESTION;
-	p.command = SEND;
-	memcpy(p.arg1, "OKONOMA", sizeof("OKONOMA"));
-	memcpy(p.arg2, "passwd", sizeof("passwd"));
-	memcpy(p.arg3, "kanali", sizeof("kanali"));
-	p.length = 23;
-	memcpy(p.body, "hello people here we go", sizeof("hello people here we go"));
-	char* ret = packet_format(&p);
-	if(ret == NULL){
-		res = 0;
-		return NULL;
-	}else{
-		// if(memcmp(buf, ret, sizeof(buf))== 0){
-		// 	res = 1;
-		// 	return NULL;
-		// }
-		for(int i = 0; i < sizeof(buf); i++){
-			unsigned char c = ret[i];
-			if(ret[i] != (unsigned char)buf[i]);
-				fprintf(stderr, "differennce at %d %u!=%u\n", i, ret[i], buf[i]);
-		}
-	}
-	res = 0;
-	return NULL;
-}
+// 	packet p;
+// 	memset(&p, 0, sizeof(p));
+// 	p.packet_type = QUESTION;
+// 	p.command = SEND;
+// 	memcpy(p.arg1, "OKONOMA", sizeof("OKONOMA"));
+// 	memcpy(p.arg2, "passwd", sizeof("passwd"));
+// 	memcpy(p.arg3, "kanali", sizeof("kanali"));
+// 	p.length = 23;
+// 	memcpy(p.body, "hello people here we go", sizeof("hello people here we go"));
+// 	char* ret = packet_format(&p);
+// 	if(ret == NULL){
+// 		res = 0;
+// 		return NULL;
+// 	}else{
+// 		// if(memcmp(buf, ret, sizeof(buf))== 0){
+// 		// 	res = 1;
+// 		// 	return NULL;
+// 		// }
+// 		for(int i = 0; i < sizeof(buf); i++){
+// 			unsigned char c = ret[i];
+// 			if(ret[i] != (unsigned char)buf[i]);
+// 				fprintf(stderr, "differennce at %d %u!=%u\n", i, ret[i], buf[i]);
+// 		}
+// 	}
+// 	res = 0;
+// 	return NULL;
+// }
 
 
 
