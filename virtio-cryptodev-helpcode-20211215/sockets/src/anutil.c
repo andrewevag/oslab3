@@ -119,41 +119,41 @@ int splitToWords(char* str, int length,char** words, int maxwords){
 }
 
 
-// ssize_t insist_read(int fd, void* buf, size_t nbyte)
-// {
-// 	ssize_t nread = 0, n;
+ssize_t insist_read(int fd, void* buf, size_t nbyte)
+{
+	ssize_t nread = 0, n;
 
-// 	do{
-// 		if( (n = read(fd, &((char*) buf)[nread], nbyte-nread) == -1) ){
-// 			if(errno)
-// 				continue;
-// 			else return -1;
-// 		}
-// 		if (n==0)
-// 			return nread;
-// 		nread += n;
+	do{
+		if( (n = read(fd, &((char*) buf)[nread], nbyte-nread) == -1) ){
+			if(errno)
+				continue;
+			else return -1;
+		}
+		if (n==0)
+			return nread;
+		nread += n;
 			
-// 	} while(nread < nbyte);
+	} while(nread < nbyte);
 
-// 	return nread;
-// }
+	return nread;
+}
 
 /* Insist until all of the data has been read */
-ssize_t insist_read(int fd, void *buf, size_t cnt)
-{
-        ssize_t ret;
-        size_t orig_cnt = cnt;
+// ssize_t insist_read(int fd, void *buf, size_t cnt)
+// {
+//         ssize_t ret;
+//         size_t orig_cnt = cnt;
 
-        while (cnt > 0) {
-                ret = read(fd, buf, cnt);
-                if (ret < 0)
-                        return ret;
-                buf += ret;
-                cnt -= ret;
-        }
+//         while (cnt > 0) {
+//                 ret = read(fd, buf, cnt);
+//                 if (ret < 0)
+//                         return ret;
+//                 buf += ret;
+//                 cnt -= ret;
+//         }
 
-        return orig_cnt;
-}
+//         return orig_cnt;
+// }
 
 
 
