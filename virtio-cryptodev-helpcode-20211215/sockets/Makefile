@@ -55,7 +55,8 @@ $(OBJ)%.o: $(SRC)%.c
 
 
 TEST = tests/
-TESTS = $(wildcard $(TEST)*.c)
+# TESTS = $(wildcard $(TEST)*.c)
+TESTS = $(TEST)test2.c
 TESTBINS = $(patsubst $(TEST)%.c, $(TEST)bin/%, $(TESTS))
 
 $(TEST)bin/%: $(TEST)%.c 
