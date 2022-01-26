@@ -42,7 +42,7 @@ int main(int argc, char** argv){
 	while(1) {
 		//read the packet.
 		while(readbytes < sizeof(tempp)){
-			nread = read(newsd, &tempp, sizeof(tempp));
+			nread = read(newsd, &tempp, sizeof(tempp)); //mini bug read the leftover bytes. and plus the offset.
 			if(nread == 0){
 				printf("[child] connection closed exitting\n");
 				exit(0);
