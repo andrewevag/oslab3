@@ -63,6 +63,6 @@ void encryption(unsigned char* input, unsigned char* output,int size){
 ssize_t encrypt_insist_write(int fd, void* buf, size_t cnt){
 	unsigned char* bufout = sfmalloc(cnt);
 	memset(bufout, 0, cnt);
-	encryption(buf,bufout,cnt);
-	return insist_write(fd,bufout,cnt);
+	//encryption(buf,bufout,cnt);
+	return insist_write(fd,buf,cnt);
 }

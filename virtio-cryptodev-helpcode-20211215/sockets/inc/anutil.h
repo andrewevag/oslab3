@@ -19,7 +19,7 @@ void safe_write(int fd, const void *buf, size_t cnt);
 #define const_safe_write(fd, cswbuf) safe_write(fd, cswbuf, sizeof(cswbuf))
 
 //ssize_t insist_read(int fd, void *buf, size_t cnt);
-ssize_t insist_read(int fd, void* buf, size_t nbyte)
+ssize_t insist_read(int fd, void* buf, size_t nbyte);
 
 
 int splitToWords(char* str, int length,char** words, int maxwords);
