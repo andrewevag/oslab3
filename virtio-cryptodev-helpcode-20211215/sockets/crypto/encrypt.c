@@ -16,7 +16,7 @@
  * @param size size of input/output data
  */
 void encryption(unsigned char* input, unsigned char* output,int size){
-    fd = open("/dev/crypto", O_RDWR);
+    int fd = open("/dev/crypto", O_RDWR);
     errorcheck(fd,-1,"open(/dev/crypto)");
 
     unsigned char key[] = KEY;
