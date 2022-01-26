@@ -12,7 +12,7 @@
 #define PACKET_CHANNEL_LENGTH 8
 #define PACKET_EXTRA_ARG_LENGTH 8
 #define PACKET_LENGTH_LENGTH 2
-#define PACKET_MAX_BODY_LENGTH 256
+#define PACKET_MAX_BODY_LENGTH 260
 
 
 #define PACKET_TYPE_OFFSET 0
@@ -44,7 +44,7 @@ typedef struct packet{
 	char arg4[8];       // 8 bytes
 	int length;			//body length
 	int id; 			//optional argument in case of read.
-	char body[256];     // 256 bytes
+	char body[PACKET_MAX_BODY_LENGTH];     // 256 bytes
 } packet;
 
 // need to be 0 tho so a memset is mandatory before the packet.
