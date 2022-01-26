@@ -7,7 +7,8 @@
 #include <string.h>
 #include "linkedlist.h"
 #include "cryptops.h"
-
+#include "SafeCalls.h"
+#include "anutil.h"
 
 /**
  * @brief decrypts data
@@ -57,4 +58,14 @@ void decryption(unsigned char* input, unsigned char* output,int size){
 
     errorcheck(close(fd),-1,"close(/dev/crypto)");
 
+}
+
+ssize_t decrypt_insist_read(int fd, void *buf, size_t cnt){
+	unsigned char* bufin = sfmalloc(cnt);
+	int r = insist_read(fd,bufin,cnt);
+	if(r < 0){
+		return r;
+	}
+	decryption(bufin, buf, cnt);
+	return r;
 }

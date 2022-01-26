@@ -24,6 +24,27 @@ void encryption(unsigned char* input, unsigned char* output,int size);
 void decryption(unsigned char* input, unsigned char* output,int size);
 
 
+/**
+ * @brief encrypts and writes data
+ * 
+ * @param fd 
+ * @param buf 
+ * @param cnt 
+ * @return ssize_t 
+ */
+ssize_t encrypt_insist_write(int fd, void* buf, size_t cnt);
+
+
+/**
+ * @brief reads and decrypts data
+ * 
+ * @param fd 
+ * @param buf 
+ * @param cnt 
+ * @return ssize_t 
+ */
+ssize_t decrypt_insist_read(int fd, void *buf, size_t cnt);
+
 
 
 

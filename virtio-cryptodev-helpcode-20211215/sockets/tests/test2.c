@@ -64,37 +64,21 @@ void* check1(void* arg)
 	return NULL;
 }
 
-// void* check2(void* arg)
-// {
-// 	char buf[] = {'Q', 'S', 0, 'O', 'K', 'O', 'N', 'O', 'M', 'A', 0, 'p', 'a', 's', 's', 'w', 'd', 0, 0, 'k', 'a', 'n', 'a', 'l', 'i', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 'h', 'e', 'l', 'l', 'o', ' ', 'p', 'e', 'o', 'p', 'l', 'e', ' ', 'h', 'e', 'r', 'e', ' ', 'w', 'e', ' ', 'g', 'o'};
-
-// 	packet p;
-// 	memset(&p, 0, sizeof(p));
-// 	p.packet_type = QUESTION;
-// 	p.command = SEND;
-// 	memcpy(p.arg1, "OKONOMA", sizeof("OKONOMA"));
-// 	memcpy(p.arg2, "passwd", sizeof("passwd"));
-// 	memcpy(p.arg3, "kanali", sizeof("kanali"));
-// 	p.length = 23;
-// 	memcpy(p.body, "hello people here we go", sizeof("hello people here we go"));
-// 	char* ret = packet_format(&p);
-// 	if(ret == NULL){
-// 		res = 0;
-// 		return NULL;
-// 	}else{
-// 		// if(memcmp(buf, ret, sizeof(buf))== 0){
-// 		// 	res = 1;
-// 		// 	return NULL;
-// 		// }
-// 		for(int i = 0; i < sizeof(buf); i++){
-// 			unsigned char c = ret[i];
-// 			if(ret[i] != (unsigned char)buf[i]);
-// 				fprintf(stderr, "differennce at %d %u!=%u\n", i, ret[i], buf[i]);
-// 		}
-// 	}
-// 	res = 0;
-// 	return NULL;
-// }
+void* check2(void* arg)
+{
+	int fd = open("tempfile", O_CREAT | O_RDWR | O_TRUNC, S_IRWXU);
+	errorcheck(fd, -1, "open file test");
+	packet p = packetCU("gkrinia","nusta1");
+	errorcheck(encrypt_insist_write(fd,&p,sizeof(p)),-1,"encrypt insist write error");
+	packet q;
+	errorcheck(decrypt_insist_read(fd,&q,sizeof(q)),-1, "decrypt insist read error");
+	if(memcmp(&p,&q,sizeof(q)) != 0){
+		res = 0;
+	}else{
+		res = 1;
+	}
+	return NULL;
+}
 
 
 
@@ -102,7 +86,7 @@ void* check1(void* arg)
 
 //TESTING PARSER SUITE
 void (*befores[])(void) = {NULL, NULL};
-void* (*tests[])(void*) = {check1};
+void* (*tests[])(void*) = {check1,};
 void (*afters[])(void) = {NULL, NULL};
 char* testnames[] = {"CU msg", "Variable msg send"};
 
