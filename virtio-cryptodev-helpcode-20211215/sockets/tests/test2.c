@@ -66,11 +66,14 @@ void* check1(void* arg)
 
 void* check2(void* arg)
 {
-	int fd = open("tempfile", O_CREAT | O_RDWR | O_TRUNC, S_IRWXU);
+	int fd = open("tempfile", O_CREAT | O_RDWR | O_TRUNC | O_APPEND, S_IRWXU);
 	errorcheck(fd, -1, "open file test");
 	char p[] = KEY;
 	errorcheck(encrypt_insist_write(fd,&p,sizeof(p)),-1,"encrypt insist write error");
 	printf("write return\n");
+	close(fd);
+	fd = open("tempfile", O_RDWR);
+	errorcheck(fd, -1, "failed to open 2");
 	char q[16];
 	errorcheck(decrypt_insist_read(fd,&q,sizeof(q)),-1, "decrypt insist read error");
 	if(memcmp(&p,&q,sizeof(q)) != 0){
