@@ -22,6 +22,8 @@
 #include "packet.h"
 #include "packet_parser.h"
 #include "SSI.h"
+#include "cryptops.h"
+
 
 int main(int argc, char** argv){
 
@@ -42,7 +44,7 @@ int main(int argc, char** argv){
 	while(1) {
 		//read the packet.
 		while(readbytes < sizeof(tempp)){
-			nread = read(newsd, &tempp, sizeof(tempp)); //mini bug read the leftover bytes. and plus the offset.
+			nread = decrypt_insist_read(newsd, &tempp, sizeof(tempp)); //mini bug read the leftover bytes. and plus the offset.
 			if(nread == 0){
 				printf("[child] connection closed exitting\n");
 				exit(0);
@@ -58,13 +60,13 @@ int main(int argc, char** argv){
 		{
 			fprintf(stderr, "failed to write to server\n");
 			tempp = packetServerF("Server is down");
-			insist_write(newsd, &tempp, sizeof(tempp));
+			encrypt_insist_write(newsd, &tempp, sizeof(tempp));
 			exit(1);
 		}
 		//read the new packet - response.
 		insist_read(dirsock->ssi_fd, &tempp, sizeof(tempp));		
 		ssi_close(dirsock);
-		insist_write(newsd, &tempp, sizeof(tempp));
+		encrypt_insist_write(newsd, &tempp, sizeof(tempp));
 	}
 
 	close(newsd);

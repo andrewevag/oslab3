@@ -22,6 +22,7 @@
 #include "packet.h"
 #include "packet_parser.h"
 #include "SSI.h"
+#include "cryptops.h"
 
 #define Black "\033[0;30m"
 #define Red "\033[0;31m"
@@ -46,7 +47,7 @@ void handle_send();
 void handle_follow();
 void handle_add();
 
-ssize_t encrypt_insist_write(int fd, const void *buf, size_t cnt);
+//ssize_t encrypt_insist_write(int fd, const void *buf, size_t cnt);
 
 int main(int argc, char** argv)
 {
@@ -98,7 +99,7 @@ exit:
 int read_response()
 {
 	packet p;
-	insist_read(s->ssi_fd, &p, sizeof(packet));
+	decrypt_insist_read(s->ssi_fd, &p, sizeof(packet));
 	//here we need to decrypt it.
 	if(p.command == SERVER_SUCCESS){
 		printf(Green"- "RESET_COLOR"%s\n", p.body);
@@ -204,9 +205,9 @@ void handle_add()
 
 
 
-ssize_t encrypt_insist_write(int fd, const void *buf, size_t cnt)
-{
-	//encrypt
+// ssize_t encrypt_insist_write(int fd, const void *buf, size_t cnt)
+// {
+// 	//encrypt
 
-	return insist_write(fd, buf, cnt);
-}
+// 	return insist_write(fd, buf, cnt);
+// }
