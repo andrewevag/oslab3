@@ -149,10 +149,11 @@ void* check4(void* arg)
 }
 
 //TESTING PARSER SUITE
-void (*befores[])(void) = {NULL, NULL, NULL};
-void* (*tests[])(void*) = {check1,check2, check3};
-void (*afters[])(void) = {NULL, NULL, NULL};
-char* testnames[] = {"encrypt/decrypt", "insist encrypt/decrypt", "packet with encrypt/decrypt"};
+void (*befores[])(void) = {NULL, NULL, NULL, NULL};
+void* (*tests[])(void*) = {check1,check2, check3, check4};
+void (*afters[])(void) = {NULL, NULL, NULL, NULL};
+char* testnames[] = {"encrypt/decrypt", "insist encrypt/decrypt", "packet with encrypt/decrypt", 
+"nonblocking read encrypt/decrypt"};
 
 
 int successes  = 0;
