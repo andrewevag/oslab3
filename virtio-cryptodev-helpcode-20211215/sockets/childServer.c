@@ -44,7 +44,7 @@ int main(int argc, char** argv){
 	while(1) {
 		//read the packet.
 		while(readbytes < sizeof(tempp)){
-			nread = decrypt_insist_read(newsd, &tempp, sizeof(tempp)); //mini bug read the leftover bytes. and plus the offset.
+			nread = read(newsd, &tempp, sizeof(tempp)); //mini bug read the leftover bytes. and plus the offset.
 			if(nread == 0){
 				printf("[child] connection closed exitting\n");
 				exit(0);
@@ -54,6 +54,8 @@ int main(int argc, char** argv){
 			}
 			readbytes += nread;
 		}
+		unsigned char res[sizeof(tempp)];
+		decryption(&tempp ,&res, sizeof(tempp));
 		fprintf(stderr, "[child] read %d bytes\n", readbytes);
 		readbytes = 0;
 		dirsock = ssi_un_open(socketname, false, 0);
