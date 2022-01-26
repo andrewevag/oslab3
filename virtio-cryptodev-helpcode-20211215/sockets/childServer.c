@@ -54,6 +54,7 @@ int main(int argc, char** argv){
 			}
 			readbytes += nread;
 		}
+		fprintf(stderr, "[child] read %d bytes\n", readbytes);
 		readbytes = 0;
 		dirsock = ssi_un_open(socketname, false, 0);
 		if (insist_write(dirsock->ssi_fd, &tempp, sizeof(tempp)) < 0)
