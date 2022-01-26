@@ -86,9 +86,9 @@ void* check2(void* arg)
 
 //TESTING PARSER SUITE
 void (*befores[])(void) = {NULL, NULL};
-void* (*tests[])(void*) = {check1,};
+void* (*tests[])(void*) = {check1,check2};
 void (*afters[])(void) = {NULL, NULL};
-char* testnames[] = {"CU msg", "Variable msg send"};
+char* testnames[] = {"encrypt/decrypt", "insist encrypt/decrypt"};
 
 
 int successes  = 0;
