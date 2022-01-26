@@ -23,7 +23,7 @@ INCLUDE += -I$(PWD)/
 SOURCE = $(wildcard $(SRC)*.c)
 SOURCE += $(wildcard $(CRYPTO)*.c)
 OBJECTS = $(patsubst $(SRC)%.c, $(OBJ)%.o, $(SOURCE))
-OBJECTS += $(patsubst $(CRYPTO)%.c, $(OBJ)%.o, $(SOURCE))
+#OBJECTS += $(patsubst $(CRYPTO)%.c, $(OBJ)%.o, $(SOURCE))
 # OBJECTS += server.o
 
 # BINS = socket-server socket-client
