@@ -86,13 +86,73 @@ void* check2(void* arg)
 
 
 
+void* check3(void* arg)
+{
+	int fd = open("tempfile", O_CREAT | O_RDWR | O_TRUNC | O_APPEND, S_IRWXU);
+	errorcheck(fd, -1, "open file test");
+	packet p = packetCU("andr", "passwd");
+	errorcheck(encrypt_insist_write(fd,&p,sizeof(p)),-1,"encrypt insist write error");
+	printf("write return\n");
+	close(fd);
+	fd = open("tempfile", O_RDWR);
+	errorcheck(fd, -1, "failed to open 2");
+	packet q;
+	errorcheck(decrypt_insist_read(fd,&q,sizeof(q)),-1, "decrypt insist read error");
+	if(memcmp(&p,&q,sizeof(q)) != 0){
+		res = 0;
+	}else{
+		res = 1;
+	}
+	return NULL;
 
+
+}
+
+void* check4(void* arg)
+{
+	int fd = open("tempfile", O_CREAT | O_RDWR | O_TRUNC | O_APPEND, S_IRWXU);
+	errorcheck(fd, -1, "open file test");
+	packet p = packetCU("andr", "passwd");
+	errorcheck(encrypt_insist_write(fd,&p,sizeof(p)),-1,"encrypt insist write error");
+	printf("write return\n");
+	close(fd);
+	fd = open("tempfile", O_RDWR);
+	errorcheck(fd, -1, "failed to open 2");
+	packet q;
+	int nread, readbytes = 0;
+	while(readbytes < sizeof(q))
+	{
+		nread = read(fd, ((void*)&q)+readbytes, sizeof(q)-readbytes);
+		if(nread == 0)
+		{
+			fprintf(stderr, "didin't expect it to end\n");
+			res = 0;
+			return NULL;
+		}else if(nread < 0){
+			fprintf(stderr, "error on read\n");
+			res = 0;
+			return NULL;
+		}
+		readbytes += nread;
+	}
+	fprintf(stderr, "read %d bytes\n", readbytes);
+	packet resp;
+	decryption(&q, &resp, sizeof(q));
+
+	if(memcmp(&p,&resp,sizeof(p)) != 0){
+		res = 0;
+	}else{
+		res = 1;
+	}
+	return NULL;
+	
+}
 
 //TESTING PARSER SUITE
-void (*befores[])(void) = {NULL, NULL};
-void* (*tests[])(void*) = {check1,check2};
-void (*afters[])(void) = {NULL, NULL};
-char* testnames[] = {"encrypt/decrypt", "insist encrypt/decrypt"};
+void (*befores[])(void) = {NULL, NULL, NULL};
+void* (*tests[])(void*) = {check1,check2, check3};
+void (*afters[])(void) = {NULL, NULL, NULL};
+char* testnames[] = {"encrypt/decrypt", "insist encrypt/decrypt", "packet with encrypt/decrypt"};
 
 
 int successes  = 0;
