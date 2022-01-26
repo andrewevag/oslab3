@@ -16,7 +16,7 @@
 #define HELLO_THERE "Hello there!"
 #define MAX_MSIZE 4096
 
-#define DATA_SIZE       298 // packet size
+#define DATA_SIZE       304 // packet size
 #define BLOCK_SIZE      16
 #define KEY_SIZE	16  /* AES128 */
 #define KEY {254,56,64,66,97,111,23,26,78,90,99,33,57,111,54,2}
