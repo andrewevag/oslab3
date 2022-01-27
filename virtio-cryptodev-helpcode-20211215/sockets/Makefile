@@ -28,7 +28,6 @@ OBJECTS = $(patsubst $(SRC)%.c, $(OBJ)%.o, $(SOURCE))
 BINS = client epollserver
 
 all: $(BINS)
-	echo $(INCLUDE)
 # server: $(OBJECTS) server.o
 # 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
 fatherServer: $(OBJECTS) fatherServer.o
@@ -41,6 +40,8 @@ serverAN: $(OBJECTS) serverAN.o
 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
 
 client: $(OBJECTS) client.o
+	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
+epollserver: $(OBJECTS) epollserver.o
 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
 
 clean:
