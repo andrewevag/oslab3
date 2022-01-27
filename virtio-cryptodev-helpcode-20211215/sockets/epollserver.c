@@ -26,6 +26,7 @@
 #include "SSI.h"
 #include "packet.h"
 #include "packet_parser.h"
+#include "cryptops.h"
 
 
 #define MAX_EVENTS 1024
