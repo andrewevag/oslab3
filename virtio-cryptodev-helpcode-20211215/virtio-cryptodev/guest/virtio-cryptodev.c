@@ -141,17 +141,17 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             iv = elem->out_sg[5].iov_base;
             dst = elem->in_sg[0].iov_base;
             host_return_val = elem->in_sg[1].iov_base;
-            printf("CIOCGSESSION received host_return_val = %d\n", *host_return_val);
+            printf("CIOCCRYPT received host_return_val = %d\n", *host_return_val);
             
             struct crypt_op cryp;
             memcpy(&cryp, crypt_op, sizeof(cryp));
             cryp.src = src;
             cryp.iv = iv;
             cryp.dst = dst;
-            printf("CIOCGSESSION src = %s\n iv = %s\nkeylen = %d\nop = %d\n"
-            , (char*)cryp.src, (char*)cryp.iv, cryp.len, cryp.op);
+            printf("CIOCCRYPT src = %s\n iv = %s\nkeylen = %d\nop = %d\naddress of dst %lu\n"
+            , (char*)cryp.src, (char*)cryp.iv, cryp.len, cryp.op, cryp.dst);
             if((ret = ioctl(*host_fd, CIOCCRYPT, &cryp))){
-                perror("ioctl(CIOCCRYPT)");
+                perror("ioctl(CIOCCRYPT) QEMU");
             }
             *host_return_val = ret;
             len = (sizeof(unsigned char) * cryp.len) + sizeof(*host_return_val);
