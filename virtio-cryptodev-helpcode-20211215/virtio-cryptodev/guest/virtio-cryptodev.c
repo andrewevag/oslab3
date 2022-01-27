@@ -52,7 +52,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
 {
     VirtQueueElement *elem;
     unsigned int *syscall_type;
-
+    unsigned long len; 
     DEBUG_IN();
 
     elem = virtqueue_pop(vq, sizeof(VirtQueueElement));
@@ -68,21 +68,85 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
     case VIRTIO_CRYPTODEV_SYSCALL_TYPE_OPEN:
         DEBUG("VIRTIO_CRYPTODEV_SYSCALL_TYPE_OPEN");
         /* ?? */
+        //emulate the open.
+        int fd = open("/dev/crypto", O_RDWR);
+        int* host_fd = elem->in_sg[0].iov_base;
+        *host_fd = fd;
+        len = sizeof(fd);
+        // len = iov_from_buf(elem->in_sg, elem->in_num, 0, &fd, sizeof(fd));
+        printf("TYPE_OPEN : fd = %d, len = %d\n", fd, len);
         break;
 
     case VIRTIO_CRYPTODEV_SYSCALL_TYPE_CLOSE:
         DEBUG("VIRTIO_CRYPTODEV_SYSCALL_TYPE_CLOSE");
         /* ?? */
+        int* host_fd = elem->out_sg[1].iov_base;
+        close(*host_fd);
+        len = 0;
         break;
 
     case VIRTIO_CRYPTODEV_SYSCALL_TYPE_IOCTL:
         DEBUG("VIRTIO_CRYPTODEV_SYSCALL_TYPE_IOCTL");
         /* ?? */
-        unsigned char *output_msg = elem->out_sg[1].iov_base;
-        unsigned char *input_msg = elem->in_sg[0].iov_base;
-        memcpy(input_msg, "Host: Welcome to the virtio World!", 35);
-        printf("Guest says: %s\n", output_msg);
-        printf("We say: %s\n", input_msg);
+        // unsigned char *output_msg = elem->out_sg[1].iov_base;
+        // unsigned char *input_msg = elem->in_sg[0].iov_base;
+        // memcpy(input_msg, "Host: Welcome to the virtio World!", 35);
+        // printf("Guest says: %s\n", output_msg);
+        // printf("We say: %s\n", input_msg);
+        int* host_fd = elem->out_sg[1].iov_base;
+        unsigned int* ioctl_cmd = elem->out_sg[2].iov_base;
+        switch (*ioctl_cmd)
+        {
+        case CIOCGSESSION:
+            unsigned char* session_key = elem->out_sg[3].iov_base;
+            struct session_op* session_op = elem->in_sg[0].iov_base;
+            int* host_return_val = elem->in_sg[1].iov_base;
+            int ret;
+            struct session_op sess;
+            printf("CIOCGSESSION received host_return_val = %d\n", *host_return_val);
+            memcpy(&sess, session_op, sizeof(*session_op));
+            sess.key = session_key;
+            if(ret = ioctl(*host_fd, CIOCGSESSION, &sess)){
+                perror("ioctl(CIOCCRYPT)");
+            }
+            *host_return_val = ret;
+            len = sizeof(*session_op) + sizeof(*host_return_val);
+            printf("CIOCGSESSION : return_val = %d, len = %d\n", ret, len);
+            break;
+        case CIOCFSESSION:
+            __u32* ses_id = elem->out_sg[3].iov_base;
+            int* host_return_val = elem->in_sg[0].iov_base;
+            printf("CIOCFSESSION received host_return_val = %d\n", *host_return_val);
+            if((ret = ioctl(*host_fd, CIOCFSESSION, ses_id))){
+		        perror("ioctl(CIOCFSESSION)");
+            }
+            *host_return_val = ret;
+            len = sizeof(*host_return_val);
+            printf("CIOCFSESSION : return_val = %d, len = %d\n", ret, len);
+            break;
+        case CIOCCRYPT:
+            struct crypt_op crypt_op* = elem->out_sg[3].iov_base;
+            unsigned char* src = elem->out_sg[4].iov_base;
+            unsigned char* iv = elem->out_sg[5].iov_base;
+            unsigned char* dst = elem->in_sg[0].iov_base;
+            unsigned char* host_return_val = elem->in_sg[1].iov_base;
+            printf("CIOCGSESSION received host_return_val = %d\n", *host_return_val);
+            struct crypt_op cryp;
+            memcpy(&cryp, crypt_op, sizeof(cryp));
+            cryp.src = src;
+            cryp.iv = iv;
+            cryp.dst = dst;
+            if(ret = ioctl(*host_fd, CIOCCRYPT, &cryp)){
+                perror("ioctl(CIOCCRYPT)");
+            }
+            *host_return_val = ret;
+            len = (sizeof(unsigned char) * crypt.len) + sizeof(*host_return_val);
+            printf("CIOCCRYPT : return_val = %d, len = %d\n", ret, len);
+            break;
+        default:
+            break;
+        }
+
         break;
 
     default:
@@ -90,7 +154,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
         break;
     }
 
-    virtqueue_push(vq, elem, 0);
+    virtqueue_push(vq, elem, len);
     virtio_notify(vdev, vq);
     g_free(elem);
 }
