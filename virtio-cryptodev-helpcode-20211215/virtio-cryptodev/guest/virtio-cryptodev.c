@@ -167,7 +167,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
                 perror("ioctl(CIOCCRYPT) QEMU");
             }
             // memcpy(dst, cryp.dst, sizeof(unsigned char) * cryp.len);
-            len = iov_from_buf(elem->in_sg, elem->in_num, 0, crypt.dst, sizeof(unsigned char) * crypt.len);
+            len = iov_from_buf(elem->in_sg, elem->in_num, 0, cryp.dst, sizeof(unsigned char) * cryp.len);
             len += sizeof(*host_return_val);
             *host_return_val = ret;
             // len += (sizeof(unsigned char) * cryp.len) + sizeof(*host_return_val);
