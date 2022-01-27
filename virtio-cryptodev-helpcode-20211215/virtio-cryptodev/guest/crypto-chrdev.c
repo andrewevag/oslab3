@@ -83,8 +83,11 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	unsigned int len;
 	struct crypto_open_file *crof;
 	struct crypto_device *crdev;
+	struct virtqueue *vq;
 	unsigned int *syscall_type;
 	int *host_fd;
+	struct scatterlist syscall_type_sg, host_fd_sg, *sgs[2];
+	unsigned int num_out = 0, num_in = 0;
 
 	debug("Entering");
 
@@ -117,10 +120,9 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	crof->host_fd = -1;
 	filp->private_data = crof;
 
-	struct virtqueue *vq;
 	vq = crdev->vq;
-	struct scatterlist syscall_type_sg, host_fd_sg, *sgs[2];
-	unsigned int num_out = 0, num_in = 0;
+	
+	
 	
 	/**
 	 * We need two sg lists, one for syscall_type and one to get the 
@@ -170,8 +172,11 @@ static int crypto_chrdev_release(struct inode *inode, struct file *filp)
 	struct crypto_open_file *crof = filp->private_data;
 	struct crypto_device *crdev = crof->crdev;
 	unsigned int *syscall_type, *host_fd;
+	struct virtqueue *vq;
+	struct scatterlist syscall_type_sg, host_fd_sg, *sgs[2];
 	unsigned int len;
 	int err;
+	unsigned int num_out = 0, num_in = 0;
 
 	debug("Entering");
 
@@ -179,9 +184,9 @@ static int crypto_chrdev_release(struct inode *inode, struct file *filp)
 	*syscall_type = VIRTIO_CRYPTODEV_SYSCALL_CLOSE;
 	host_fd = kzalloc(sizeof(*host_fd), GFP_KERNEL);
 	*host_fd = crof->host_fd;
-	struct virtqueue *vq = crdev->vq;
-	struct scatterlist syscall_type_sg, host_fd_sg, *sgs[2];
-	unsigned int num_out = 0, num_in = 0;
+	vq = crdev->vq;
+	
+	
 
 	/**
 	 * Send data to the host.
