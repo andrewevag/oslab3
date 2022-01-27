@@ -148,11 +148,17 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             cryp.src = src;
             cryp.iv = iv;
             cryp.dst = dst;
+            printf("CIOCCRYPT crypt.dst test = %s", (char*)dst);
+            cryp.dst = (unsigned char*)malloc(sizeof(unsigned char) * cryp.len);
+            if(cryp.dst == NULL){
+                printf("CIOCCRYPT malloc failed QEMU cryp.dst\n");
+            }
             printf("CIOCCRYPT src = %s\n iv = %s\nkeylen = %d\nop = %d\naddress of dst %lu\n"
             , (char*)cryp.src, (char*)cryp.iv, cryp.len, cryp.op, cryp.dst);
             if((ret = ioctl(*host_fd, CIOCCRYPT, &cryp))){
                 perror("ioctl(CIOCCRYPT) QEMU");
             }
+            memcpy(dst, cryp.dst, sizeof(unsigned char) * cryp.len);
             *host_return_val = ret;
             len = (sizeof(unsigned char) * cryp.len) + sizeof(*host_return_val);
             printf("CIOCCRYPT : return_val = %d, len = %ld\n", ret, len);
