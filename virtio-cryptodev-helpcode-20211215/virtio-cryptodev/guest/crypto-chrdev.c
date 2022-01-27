@@ -465,7 +465,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 			ret = -EFAULT;
 			goto out_only_top_relese;
 		}
-
+		debug("CIOCCRYPT @KERNEL sessionid = %u\n", crypt_op->ses);
 		src = kzalloc(sizeof(unsigned char) * crypt_op->len, GFP_KERNEL);
 		src_user = crypt_op->src;
 		if(copy_from_user(src, src_user, sizeof(unsigned char) * crypt_op->len)){
@@ -543,7 +543,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 			ret = -EFAULT;
 			goto out_only_top_relese;
 		}
-	
+		debug("CIOCCRYPT @KERNEL sessionidlast = %u\n", crypt_op->ses);
+		
 
 		//probably here we unlock.
 		up(&(crdev->sem));
