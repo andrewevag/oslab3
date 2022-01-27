@@ -145,8 +145,16 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             
             struct crypt_op cryp;
             memcpy(&cryp, crypt_op, sizeof(cryp));
-            cryp.src = src;
-            cryp.iv = iv;
+            cryp.src = (unsigned char*)malloc(sizeof(unsigned char)*cryp.len);
+            if(cryp.src == NULL){
+                printf("CIOCCRYPT malloc failed @cryp.src\n");
+            }
+            memcpy(cryp.src, src, sizeof(unsigned char) * cryp.len);
+            cryp.iv = (unsigned char*)malloc(sizeof(unsigned char) * 16);
+            if(cryp.iv == NULL){
+                printf("CIOCCRYPT malloc failed @cryp.iv\n");
+            }
+            memcpy(cryp.iv, iv, sizeof(unsigned char) * 16);
             cryp.dst = dst;
             printf("CIOCCRYPT crypt.dst test = %s", (char*)dst);
             cryp.dst = (unsigned char*)malloc(sizeof(unsigned char) * cryp.len);
@@ -158,9 +166,11 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             if((ret = ioctl(*host_fd, CIOCCRYPT, &cryp))){
                 perror("ioctl(CIOCCRYPT) QEMU");
             }
-            memcpy(dst, cryp.dst, sizeof(unsigned char) * cryp.len);
+            // memcpy(dst, cryp.dst, sizeof(unsigned char) * cryp.len);
+            len = iov_from_buf(elem->in_sg, elem->in_num, 0, crypt.dst, sizeof(unsigned char) * crypt.len);
+            len += sizeof(*host_return_val);
             *host_return_val = ret;
-            len = (sizeof(unsigned char) * cryp.len) + sizeof(*host_return_val);
+            // len += (sizeof(unsigned char) * cryp.len) + sizeof(*host_return_val);
             printf("CIOCCRYPT : return_val = %d, len = %ld\n", ret, len);
             break;
         default:
