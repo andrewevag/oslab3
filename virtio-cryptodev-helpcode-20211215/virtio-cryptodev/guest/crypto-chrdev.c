@@ -483,7 +483,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		}
 		
 		dst = kzalloc(sizeof(unsigned char) * crypt_op->len, GFP_KERNEL);
-		debug("dst = %lu\n", dst);
+		debug("dst = %lu\n", (unsigned long int)dst);
 		dst_user = crypt_op->dst;
 		host_return_val = kzalloc(sizeof(int), GFP_KERNEL);
 		*host_return_val = -1; 
