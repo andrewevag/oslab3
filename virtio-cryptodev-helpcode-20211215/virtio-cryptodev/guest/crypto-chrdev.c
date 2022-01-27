@@ -28,14 +28,14 @@
 
 
 
-#define addsglist_read(name, sizemultiplier)  \
-		sg_init_one(&name ## _sg , ##name, sizeof(*name) * sizemultiplier);										\
-		sgs[num_out++ + num_in] = &name ## _sg;
+// #define addsglist_read(name, sizemultiplier)  \
+// 		sg_init_one(&name ## _sg , ##name, sizeof(*name) * sizemultiplier);										\
+// 		sgs[num_out++ + num_in] = &name ## _sg;
 
 
-#define addsglist_write(name, sizemultiplier) \
-		sg_init_one(&name ## _sg , ##name, sizeof(*name) * sizemultiplier);										\
-		sgs[num_out + num_in++] = &name ## _sg;
+// #define addsglist_write(name, sizemultiplier) \
+// 		sg_init_one(&name ## _sg , ##name, sizeof(*name) * sizemultiplier);										\
+// 		sgs[num_out + num_in++] = &name ## _sg;
 
 
 
@@ -129,8 +129,12 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	 * file descriptor from the host.
 	 **/
 	/* ?? */
-	addsglist_read(syscall_type, 1);
-	addsglist_write(host_fd, 1);
+	// addsglist_read(syscall_type, 1);
+	sg_init_one(&syscall_type_sg ,syscall_type, sizeof(*syscall_type) * 1); 
+	sgs[num_out++ + num_in] = &syscall_type_sg;
+	// addsglist_write(host_fd, 1);
+	sg_init_one(&host_fd_sg ,host_fd, sizeof(*host_fd) * 1); 
+	sgs[num_out + num_in++] = &host_fd_sg;
 	/**
 	 * Wait for the host to process our data.
 	 **/
@@ -192,8 +196,12 @@ static int crypto_chrdev_release(struct inode *inode, struct file *filp)
 	 * Send data to the host.
 	 **/
 	/* ?? */
-	addsglist_read(syscall_type, 1);
-	addsglist_read(host_fd, 1);
+	// addsglist_read(syscall_type, 1);
+	sg_init_one(&syscall_type_sg ,syscall_type, sizeof(*syscall_type) * 1); 
+	sgs[num_out++ + num_in] = &syscall_type_sg;
+	// addsglist_read(host_fd, 1);
+	sg_init_one(&host_fd_sg ,host_fd, sizeof(*host_fd) * 1);
+	sgs[num_out++ + num_in] = &host_fd_sg;
 
 	/**
 	 * Wait for the host to process our data.
@@ -232,7 +240,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	struct crypto_open_file *crof = filp->private_data;   	//get our open file representation
 	struct crypto_device *crdev = crof->crdev;				//get which device it refers to.
 	struct virtqueue *vq;
-	vq = crdev->vq;						//get the vq of the device which we use to talk to qemu
+							//get the vq of the device which we use to talk to qemu
 															//we need to give the open fd in QEMU because every device
 															//can and will be open multiple times.
 	struct scatterlist syscall_type_sg, output_msg_sg, input_msg_sg,
@@ -250,7 +258,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 #define MSG_LEN 100
 	unsigned char *output_msg, *input_msg;
 	unsigned int *syscall_type;
-	
+	unsigned int* host_fd;
 	//used in CIOCGSESSION
 	unsigned int* ioctl_cmd;
 	struct session_op __user *s;
@@ -275,6 +283,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	/**
 	 * Allocate all data that will be sent to the host.
 	 **/
+	vq = crdev->vq;
 	output_msg = kzalloc(MSG_LEN, GFP_KERNEL);
 	input_msg = kzalloc(MSG_LEN, GFP_KERNEL);
 	syscall_type = kzalloc(sizeof(*syscall_type), GFP_KERNEL);
@@ -290,7 +299,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	sg_init_one(&syscall_type_sg, syscall_type, sizeof(*syscall_type));
 	sgs[num_out++] = &syscall_type_sg;
 	/* ?? */
-	unsigned int* host_fd;
+	
 	host_fd = kzalloc(sizeof(unsigned int), GFP_KERNEL);
 	*host_fd = crof->host_fd;
 	// host_fd_sg = kzalloc(sizeof(*host_fd_sg), GFP_KERNEL);
