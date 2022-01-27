@@ -369,6 +369,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		if(copy_to_user(s, sess, sizeof(*sess))){
 			debug("failed to copy to user CIOCGSESSION");
 			ret = -EFAULT;
+			up(&(crdev->sem));
 			goto out_only_top_relese;
 		}
 		debug("sess.sess = %u\n", sess->ses);
@@ -423,6 +424,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 			//here we were interrupted or failed to acquire the lock.
 			debug("Failed to acquire lock or was interrupted in CIOCGSESSION");
 			ret = -ERESTARTSYS;
+			up(&(crdev->sem));
 			goto out_only_top_relese;
 		}
 
@@ -484,7 +486,6 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		}
 		
 		dst = kzalloc(sizeof(unsigned char) * crypt_op->len, GFP_KERNEL);
-		memcpy(dst, "hello", sizeof("hello"));
 		debug("dst = %lu\n", (unsigned long int)dst);
 		dst_user = crypt_op->dst;
 		host_return_val = kzalloc(sizeof(int), GFP_KERNEL);
@@ -536,11 +537,13 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		if(copy_to_user(dst_user, dst, sizeof(unsigned char) * crypt_op->len)){
 			debug("failed to copy dst to user @CIOCCRYPT");
 			ret = -EFAULT;
+			up(&(crdev->sem));
 			goto out_only_top_relese;
 		}
 		if(copy_to_user(crypt_op_user, crypt_op, sizeof(*crypt_op_user))){
 			debug("failed to copy crypt_op to user @CIOCCRYPT");
 			ret = -EFAULT;
+			up(&(crdev->sem));
 			goto out_only_top_relese;
 		}
 		debug("CIOCCRYPT @KERNEL sessionidlast = %u\n", crypt_op->ses);

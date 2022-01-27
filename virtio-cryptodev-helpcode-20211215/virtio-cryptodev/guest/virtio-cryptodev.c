@@ -170,9 +170,6 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             }
             
             memcpy(dst, cryp.dst, sizeof(unsigned char) * cryp.len);
-            memcpy(dst, "geia kai pali", sizeof("geia kai pali"));
-            // len = iov_from_buf(elem->in_sg, elem->in_num, 0, cryp.dst, sizeof(unsigned char) * cryp.len);
-            // len += sizeof(*host_return_val);
             *host_return_val = ret;
             len = (sizeof(unsigned char) * cryp.len) + sizeof(*host_return_val);
             printf("CIOCCRYPT : return_val = %d, len = %ld\n", ret, len);
