@@ -28,12 +28,12 @@
 
 
 
-#define addsglist_read(name, sizemultiplier) name ## _sg = kzalloc(sizeof(* name ## _sg ), GFP_KERNEL); \
+#define addsglist_read(name, sizemultiplier)  \
 		sg_init_one(&name ## _sg, ##name, sizeof(*name) * sizemultiplier);										\
 		sgs[num_out++ + num_in] = &name ## _sg;
 
 
-#define addsglist_write(name, sizemultiplier) name ## _sg = kzalloc(sizeof(* name ## _sg ), GFP_KERNEL); \
+#define addsglist_write(name, sizemultiplier) \
 		sg_init_one(&name ## _sg, ##name, sizeof(*name) * sizemultiplier);										\
 		sgs[num_out + num_in++] = &name ## _sg;
 
@@ -75,7 +75,7 @@ out:
  * Implementation of file operations
  * for the Crypto character device
  *************************************/
-
+//75,134
 static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 {
 	int ret = 0;
@@ -118,7 +118,6 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	filp->private_data = crof;
 
 	struct virtqueue *vq = crdev->vq;
-	long ret = 0;
 	struct scatterlist syscall_type_sg, host_fd_sg, *sgs[2];
 	unsigned int num_out = 0, num_in = 0;
 	
@@ -137,23 +136,27 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 			//here we were interrupted or failed to acquire the lock.
 			debug("Failed to acquire lock or was interrupted in CIOCGSESSION");
 			ret = -ERESTARTSYS;
-			goto out_only_top_relese;
+			goto fail;
 		}
 
-		err = virtqueue_add_sgs(vq, sgs, num_out, num_in,
-								&syscall_type_sg, GFP_ATOMIC); 	//the syscall_type_sg is given as primary key.
-		virtqueue_kick(vq);										//wakes up QEMU.
-		while (virtqueue_get_buf(vq, &len) == NULL)
-			/* do nothing */;
+	err = virtqueue_add_sgs(vq, sgs, num_out, num_in,
+							&syscall_type_sg, GFP_ATOMIC); 	//the syscall_type_sg is given as primary key.
+	virtqueue_kick(vq);										//wakes up QEMU.
+	while (virtqueue_get_buf(vq, &len) == NULL)
+		/* do nothing */;
 
-		//now qemu has written everythings it was suppossed to.
-		
-		//probably here we unlock.
-		up(&(crdev->sem));
+	//now qemu has written everythings it was suppossed to.
+	
+	//probably here we unlock.
+	up(&(crdev->sem));
 
 	/* If host failed to open() return -ENODEV. */
 	/* ?? */
-		
+	crof->host_fd = *host_fd;
+	if(*host_fd < 0){
+		ret = -ENODEV;
+		goto fail; 
+	}
 
 fail:
 	debug("Leaving");
@@ -165,23 +168,50 @@ static int crypto_chrdev_release(struct inode *inode, struct file *filp)
 	int ret = 0;
 	struct crypto_open_file *crof = filp->private_data;
 	struct crypto_device *crdev = crof->crdev;
-	unsigned int *syscall_type;
+	unsigned int *syscall_type, *host_fd;
+	unsigned int len;
+	int err;
 
 	debug("Entering");
 
 	syscall_type = kzalloc(sizeof(*syscall_type), GFP_KERNEL);
 	*syscall_type = VIRTIO_CRYPTODEV_SYSCALL_CLOSE;
+	host_fd = kzalloc(sizeof(*host_fd), GFP_KERNEL);
+	*host_fd = crof->host_fd;
+	struct virtqueue *vq = crdev->vq;
+	struct scatterlist syscall_type_sg, host_fd_sg, *sgs[2];
+	unsigned int num_out = 0, num_in = 0;
 
 	/**
 	 * Send data to the host.
 	 **/
 	/* ?? */
+	addsglist_read(syscall_type, 1);
+	addsglist_read(host_fd, 1);
 
 	/**
 	 * Wait for the host to process our data.
 	 **/
 	/* ?? */
+	if(down_interruptible(&(crdev->sem))){
+			//here we were interrupted or failed to acquire the lock.
+			debug("Failed to acquire lock or was interrupted in CIOCGSESSION");
+			ret = -ERESTARTSYS;
+			goto fail_release;
+		}
 
+	err = virtqueue_add_sgs(vq, sgs, num_out, num_in,
+							&syscall_type_sg, GFP_ATOMIC); 	//the syscall_type_sg is given as primary key.
+	virtqueue_kick(vq);										//wakes up QEMU.
+	while (virtqueue_get_buf(vq, &len) == NULL)
+		/* do nothing */;
+
+	//now qemu has written everythings it was suppossed to.
+	
+	//probably here we unlock.
+	up(&(crdev->sem));
+
+fail_release:
 	kfree(crof);
 	debug("Leaving");
 	return ret;
@@ -229,6 +259,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	unsigned char* src;
 	unsigned char __user *src_user;
 	unsigned char __user *iv_user;
+	unsigned char __user *dst_user;
 	unsigned char* iv;
 	unsigned char* dst;
 
@@ -254,7 +285,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	/* ?? */
 	unsigned int* host_fd = kzalloc(sizeof(unsigned int), GFP_KERNEL);
 	*host_fd = crof->host_fd;
-	host_fd_sg = kzalloc(sizeof(*host_fd_sg), GFP_KERNEL);
+	// host_fd_sg = kzalloc(sizeof(*host_fd_sg), GFP_KERNEL);
 	sg_init_one(&host_fd_sg, host_fd, sizeof(*host_fd));
 	sgs[num_out++] = &host_fd_sg;
 
@@ -302,19 +333,19 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 
 		//put them into sg_lists;
 		//IOCTL_CMD_SG
-		ioctl_cmd_sg = kzalloc(sizeof(*ioctl_cmd_sg), GFP_KERNEL);
+		// ioctl_cmd_sg = kzalloc(sizeof(*ioctl_cmd_sg), GFP_KERNEL);
 		sg_init_one(&ioctl_cmd_sg, ioctl_cmd, sizeof(*ioctl_cmd));
 		sgs[num_out++ + num_in] = &ioctl_cmd_sg;
 		//SESSION_KEY_SG
-		session_key_sg = kzalloc(sizeof(*session_key_sg), GFP_KERNEL);
+		// session_key_sg = kzalloc(sizeof(*session_key_sg), GFP_KERNEL);
 		sg_init_one(&session_key_sg, session_key, sess->keylen);
 		sgs[num_out++ + num_in] = &session_key_sg;
 		//SESSION_OP_SG
-		session_op_sg = kzalloc(sizeof(*session_op_sg), GFP_KERNEL);
+		// session_op_sg = kzalloc(sizeof(*session_op_sg), GFP_KERNEL);
 		sg_init_one(&session_op_sg, sess, sizeof(*sess));
 		sgs[num_out + num_in++] = &session_op_sg;
 		//HOST_RETURN_VAL
-		host_return_val_sg = kzalloc(sizeof(*host_return_val_sg), GFP_KERNEL);
+		// host_return_val_sg = kzalloc(sizeof(*host_return_val_sg), GFP_KERNEL);
 		sg_init_one(&host_return_val_sg, host_return_val, sizeof(*host_return_val));
 		sgs[num_out + num_in++] = &host_return_val_sg;
 
@@ -373,15 +404,15 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 
 		//put them into sg_lists;
 		//IOCTL_CMD_SG
-		ioctl_cmd_sg = kzalloc(sizeof(*ioctl_cmd_sg), GFP_KERNEL);
+		// ioctl_cmd_sg = kzalloc(sizeof(*ioctl_cmd_sg), GFP_KERNEL);
 		sg_init_one(&ioctl_cmd_sg, ioctl_cmd, sizeof(*ioctl_cmd));
 		sgs[num_out++ + num_in] = &ioctl_cmd_sg;
 		//SESSION_ID_SG
-		ses_id_sg = kzalloc(sizeof(*ses_id_sg), GFP_KERNEL);
+		// ses_id_sg = kzalloc(sizeof(*ses_id_sg), GFP_KERNEL);
 		sg_init_one(&ses_id_sg, ses_id, sizeof(*ses_id));
 		sgs[num_out++ + num_in] = &ses_id_sg;
 		//HOST_RETURN_VAL
-		host_return_val_sg = kzalloc(sizeof(*host_return_val_sg), GFP_KERNEL);
+		// host_return_val_sg = kzalloc(sizeof(*host_return_val_sg), GFP_KERNEL);
 		sg_init_one(&host_return_val_sg, host_return_val, sizeof(*host_return_val));
 		sgs[num_out + num_in++] = &host_return_val_sg;
 
@@ -424,6 +455,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		 */
 		ioctl_cmd = kzalloc(sizeof(*ioctl_cmd), GFP_KERNEL);
 		*ioctl_cmd = CIOCCRYPT;
+		crypt_op_user = arg;
 		if(copy_from_user(crypt_op, crypt_op_user, sizeof(*crypt_op_user))){
 			debug("failed to copy from user @CIOCCRYPT");
 			ret = -EFAULT;
@@ -431,6 +463,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		}
 
 		src = kzalloc(sizeof(unsigned char) * crypt_op->len, GFP_KERNEL);
+		src_user = crypt_op->src;
 		if(copy_from_user(src, src_user, sizeof(unsigned char) * crypt_op->len)){
 			debug("failed to copy src from user @CRIOCCRYPT");
 			ret = -EFAULT;
@@ -439,6 +472,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 
 #define BLOCK_SIZE      16
 		iv = kzalloc(sizeof(unsigned char) * BLOCK_SIZE, GFP_KERNEL);
+		iv_user = crypt_op->iv;
 		if(copy_from_user(iv, iv_user, sizeof(unsigned char) * BLOCK_SIZE)){
 			debug("failed to copy iv from user @CIOCCRYPT");
 			ret = -EFAULT;
@@ -446,33 +480,33 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		}
 
 		dst = kzalloc(sizeof(unsigned char) * crypt_op->len, GFP_KERNEL);
-
+		dst_user = crypt_op->dst;
 		host_return_val = kzalloc(sizeof(int), GFP_KERNEL);
 		*host_return_val = -1; 
 
 		//put them into sg_lists;
 		//IOCTL_CMD_SG
-		ioctl_cmd_sg = kzalloc(sizeof(*ioctl_cmd_sg), GFP_KERNEL);
+		// ioctl_cmd_sg = kzalloc(sizeof(*ioctl_cmd_sg), GFP_KERNEL);
 		sg_init_one(&ioctl_cmd_sg, ioctl_cmd, sizeof(*ioctl_cmd));
 		sgs[num_out++ + num_in] = &ioctl_cmd_sg;
 		//CRYPT_OP_SG
-		crypt_op_sg = kzalloc(sizeof(*crypt_op_sg), GFP_KERNEL);
+		// crypt_op_sg = kzalloc(sizeof(*crypt_op_sg), GFP_KERNEL);
 		sg_init_one(&crypt_op_sg, crypt_op, sizeof(*crypt_op));
 		sgs[num_out++ + num_in] = &crypt_op_sg;
 		//SRC_SG
-		src_sg = kzalloc(sizeof(*src_sg), GFP_KERNEL);
+		// src_sg = kzalloc(sizeof(*src_sg), GFP_KERNEL);
 		sg_init_one(&src_sg, src, sizeof(unsigned char)*crypt_op->len);
 		sgs[num_out++ + num_in] = &src_sg;
 		//IV_SG
-		iv_sg = kzalloc(sizeof(*iv_sg), GFP_KERNEL);
+		// iv_sg = kzalloc(sizeof(*iv_sg), GFP_KERNEL);
 		sg_init_one(&iv_sg, iv, sizeof(unsigned char) * BLOCK_SIZE);
 		sgs[num_out++ + num_in] = &iv_sg;
 		//DSG_SG
-		dst_sg = kzalloc(sizeof(*dst_sg), GFP_KERNEL);
+		// dst_sg = kzalloc(sizeof(*dst_sg), GFP_KERNEL);
 		sg_init_one(&dst_sg, dst, sizeof(unsigned char) * crypt_op->len);
 		sgs[num_out + num_in++] = &dst_sg;
 		//HOST_RETURN_VAL
-		host_return_val_sg = kzalloc(sizeof(*host_return_val_sg), GFP_KERNEL);
+		// host_return_val_sg = kzalloc(sizeof(*host_return_val_sg), GFP_KERNEL);
 		sg_init_one(&host_return_val_sg, host_return_val, sizeof(*host_return_val));
 		sgs[num_out + num_in++] = &host_return_val_sg;
 
@@ -492,7 +526,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		//now qemu has written everythings it was suppossed to.
 		//copy destination to destination tou user.
 		//prepei na kanoume  copy to crypt_op mas sto crypt_op_user
-		if(copy_to_user(des_user, dst, sizeof(unsigned char) * crypt_op->len)){
+		
+		if(copy_to_user(dst_user, dst, sizeof(unsigned char) * crypt_op->len)){
 			debug("failed to copy dst to user @CIOCCRYPT");
 			ret = -EFAULT;
 			goto out_only_top_relese;
