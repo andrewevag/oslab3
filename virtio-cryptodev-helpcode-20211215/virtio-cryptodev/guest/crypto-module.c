@@ -140,6 +140,7 @@ static int __init init(void)
 
 	INIT_LIST_HEAD(&crdrvdata.devs);
 	spin_lock_init(&crdrvdata.lock);
+	crdrvdata.next_minor = 0;
 
 	/* Register the virtio driver. */
 	ret = register_virtio_driver(&virtio_crypto);
