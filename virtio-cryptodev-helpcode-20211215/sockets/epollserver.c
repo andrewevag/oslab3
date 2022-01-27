@@ -387,7 +387,8 @@ int handle_connection(serve_data* req)
 		decryption(&req->input ,&result, sizeof(result));
 		response = AN_protocol_execute(&req->input);
 		//encrypt before sending response
-
+		encryption(&response, &result, sizeof(result));
+		memcpy(&response, &result, sizeof(result));
 		encrypt_insist_write(fd, &response, sizeof(response));
 		return -1;
 	}
