@@ -473,6 +473,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		ioctl_cmd = kzalloc(sizeof(*ioctl_cmd), GFP_KERNEL);
 		*ioctl_cmd = CIOCCRYPT;
 		crypt_op_user = (struct crypt_op __user *)arg;
+		crypt_op = kzalloc(sizeof(*crypt_op), GFP_KERNEL);
 		if(copy_from_user(crypt_op, crypt_op_user, sizeof(*crypt_op_user))){
 			debug("failed to copy from user @CIOCCRYPT");
 			ret = -EFAULT;
@@ -564,7 +565,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 
 	default:
 		debug("Unsupported ioctl command");
-
+		host_return_val = kzalloc(sizeof(int), GFP_KERNEL);
+		*host_return_val = -1; 
 		break;
 	}
 
