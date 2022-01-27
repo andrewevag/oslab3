@@ -26,21 +26,6 @@
 
 
 
-
-
-// #define addsglist_read(name, sizemultiplier)  \
-// 		sg_init_one(&name ## _sg , ##name, sizeof(*name) * sizemultiplier);										\
-// 		sgs[num_out++ + num_in] = &name ## _sg;
-
-
-// #define addsglist_write(name, sizemultiplier) \
-// 		sg_init_one(&name ## _sg , ##name, sizeof(*name) * sizemultiplier);										\
-// 		sgs[num_out + num_in++] = &name ## _sg;
-
-
-
-
-
 /*
  * Global data
  */
