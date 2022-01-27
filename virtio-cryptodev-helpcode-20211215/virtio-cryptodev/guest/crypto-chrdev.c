@@ -29,12 +29,12 @@
 
 
 #define addsglist_read(name, sizemultiplier)  \
-		sg_init_one(&name ## _sg, ##name, sizeof(*name) * sizemultiplier);										\
+		sg_init_one(&name ## _sg , ##name, sizeof(*name) * sizemultiplier);										\
 		sgs[num_out++ + num_in] = &name ## _sg;
 
 
 #define addsglist_write(name, sizemultiplier) \
-		sg_init_one(&name ## _sg, ##name, sizeof(*name) * sizemultiplier);										\
+		sg_init_one(&name ## _sg , ##name, sizeof(*name) * sizemultiplier);										\
 		sgs[num_out + num_in++] = &name ## _sg;
 
 
@@ -117,7 +117,8 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	crof->host_fd = -1;
 	filp->private_data = crof;
 
-	struct virtqueue *vq = crdev->vq;
+	struct virtqueue *vq;
+	vq = crdev->vq;
 	struct scatterlist syscall_type_sg, host_fd_sg, *sgs[2];
 	unsigned int num_out = 0, num_in = 0;
 	
@@ -225,7 +226,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	int err;
 	struct crypto_open_file *crof = filp->private_data;   	//get our open file representation
 	struct crypto_device *crdev = crof->crdev;				//get which device it refers to.
-	struct virtqueue *vq = crdev->vq;						//get the vq of the device which we use to talk to qemu
+	struct virtqueue *vq;
+	vq = crdev->vq;						//get the vq of the device which we use to talk to qemu
 															//we need to give the open fd in QEMU because every device
 															//can and will be open multiple times.
 	struct scatterlist syscall_type_sg, output_msg_sg, input_msg_sg,
@@ -283,7 +285,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	sg_init_one(&syscall_type_sg, syscall_type, sizeof(*syscall_type));
 	sgs[num_out++] = &syscall_type_sg;
 	/* ?? */
-	unsigned int* host_fd = kzalloc(sizeof(unsigned int), GFP_KERNEL);
+	unsigned int* host_fd;
+	host_fd = kzalloc(sizeof(unsigned int), GFP_KERNEL);
 	*host_fd = crof->host_fd;
 	// host_fd_sg = kzalloc(sizeof(*host_fd_sg), GFP_KERNEL);
 	sg_init_one(&host_fd_sg, host_fd, sizeof(*host_fd));
@@ -311,7 +314,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		 */
 		ioctl_cmd = kzalloc(sizeof(unsigned int), GFP_KERNEL);
 		*ioctl_cmd = CIOCGSESSION;
-		s = arg; 
+		s = (struct session_op __user *) arg; 
 		sess = kzalloc(sizeof(struct session_op), GFP_KERNEL);
 		if(copy_from_user(sess, s, sizeof(struct session_op))){
 			//free memory
@@ -393,7 +396,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		ioctl_cmd = kzalloc(sizeof(*ioctl_cmd), GFP_KERNEL);
 		*ioctl_cmd = CIOCFSESSION;
 		ses_id = kzalloc(sizeof(*ses_id), GFP_KERNEL);
-		ses_id_user = arg;
+		ses_id_user = (__u32 __user *)arg;
 		if(copy_from_user(ses_id, ses_id_user, sizeof(*ses_id_user))){
 			debug("failed to copy from user CIOCFSESSION");
 			ret = -EFAULT;
@@ -455,7 +458,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		 */
 		ioctl_cmd = kzalloc(sizeof(*ioctl_cmd), GFP_KERNEL);
 		*ioctl_cmd = CIOCCRYPT;
-		crypt_op_user = arg;
+		crypt_op_user = (struct crypt_op __user *)arg;
 		if(copy_from_user(crypt_op, crypt_op_user, sizeof(*crypt_op_user))){
 			debug("failed to copy from user @CIOCCRYPT");
 			ret = -EFAULT;
@@ -470,10 +473,10 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 			goto out_only_top_relese;
 		}
 
-#define BLOCK_SIZE      16
-		iv = kzalloc(sizeof(unsigned char) * BLOCK_SIZE, GFP_KERNEL);
+#define BLOCK_SIZE_S      16
+		iv = kzalloc(sizeof(unsigned char) * BLOCK_SIZE_S, GFP_KERNEL);
 		iv_user = crypt_op->iv;
-		if(copy_from_user(iv, iv_user, sizeof(unsigned char) * BLOCK_SIZE)){
+		if(copy_from_user(iv, iv_user, sizeof(unsigned char) * BLOCK_SIZE_S)){
 			debug("failed to copy iv from user @CIOCCRYPT");
 			ret = -EFAULT;
 			goto out_only_top_relese;
@@ -499,7 +502,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		sgs[num_out++ + num_in] = &src_sg;
 		//IV_SG
 		// iv_sg = kzalloc(sizeof(*iv_sg), GFP_KERNEL);
-		sg_init_one(&iv_sg, iv, sizeof(unsigned char) * BLOCK_SIZE);
+		sg_init_one(&iv_sg, iv, sizeof(unsigned char) * BLOCK_SIZE_S);
 		sgs[num_out++ + num_in] = &iv_sg;
 		//DSG_SG
 		// dst_sg = kzalloc(sizeof(*dst_sg), GFP_KERNEL);
