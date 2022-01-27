@@ -5,6 +5,7 @@
 		"linkedlist.h": "c",
 		"sstream": "c",
 		"astring.h": "c",
-		"unistd.h": "c"
+		"unistd.h": "c",
+		"socket-common.h": "c"
 	}
 }

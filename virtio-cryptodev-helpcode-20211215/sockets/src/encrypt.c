@@ -19,7 +19,7 @@
  */
 void encryption(unsigned char* input, unsigned char* output,int size){
 	
-	int fd = open("/dev/crypto", O_RDWR);
+	int fd = open(CRYPTODEV_NODE, O_RDWR);
     errorcheck(fd,-1,"open(/dev/crypto) {encrypt}");
 
     unsigned char key[] = KEY;
