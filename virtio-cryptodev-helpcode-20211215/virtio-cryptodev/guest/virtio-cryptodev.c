@@ -97,13 +97,21 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
         host_fd = elem->out_sg[1].iov_base;
         unsigned int* ioctl_cmd = elem->out_sg[2].iov_base;
         int* host_return_val;
+        unsigned char* session_key;
+        struct session_op* session_op;
+        struct session_op sess;
+        struct crypt_op *crypt_op;
+        __u32* ses_id;
+        unsigned char* src;
+        unsigned char* iv;
+        unsigned char* dst;
         switch (*ioctl_cmd)
         {
         case CIOCGSESSION:
-            unsigned char* session_key = elem->out_sg[3].iov_base;
-            struct session_op* session_op = elem->in_sg[0].iov_base;
+            session_key = elem->out_sg[3].iov_base;
+            session_op = elem->in_sg[0].iov_base;
             host_return_val = elem->in_sg[1].iov_base;
-            struct session_op sess;
+            
             printf("CIOCGSESSION received host_return_val = %d\n", *host_return_val);
             memcpy(&sess, session_op, sizeof(*session_op));
             sess.key = session_key;
@@ -115,7 +123,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             printf("CIOCGSESSION : return_val = %d, len = %ld\n", ret, len);
             break;
         case CIOCFSESSION:
-            __u32* ses_id = elem->out_sg[3].iov_base;
+            ses_id = elem->out_sg[3].iov_base;
             host_return_val = elem->in_sg[0].iov_base;
             printf("CIOCFSESSION received host_return_val = %d\n", *host_return_val);
             if((ret = ioctl(*host_fd, CIOCFSESSION, ses_id))){
@@ -126,10 +134,10 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             printf("CIOCFSESSION : return_val = %d, len = %ld\n", ret, len);
             break;
         case CIOCCRYPT:
-            struct crypt_op crypt_op* = elem->out_sg[3].iov_base;
-            unsigned char* src = elem->out_sg[4].iov_base;
-            unsigned char* iv = elem->out_sg[5].iov_base;
-            unsigned char* dst = elem->in_sg[0].iov_base;
+            crypt_op = elem->out_sg[3].iov_base;
+            src = elem->out_sg[4].iov_base;
+            iv = elem->out_sg[5].iov_base;
+            dst = elem->in_sg[0].iov_base;
             host_return_val = elem->in_sg[1].iov_base;
             printf("CIOCGSESSION received host_return_val = %d\n", *host_return_val);
             struct crypt_op cryp;
