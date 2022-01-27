@@ -320,6 +320,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 			ret = -EFAULT;
 			goto out_only_top_relese;
 		}
+		debug("sess.sess = %u\n", sess.ses);
 		//here we copy the key to a new buffer so that QEMU can access it because
 		//originally it was stored in userspace buffer that QEMU cannot access.
 		session_key = kzalloc(sizeof(unsigned char) * sess->keylen, GFP_KERNEL);
@@ -370,7 +371,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 			ret = -EFAULT;
 			goto out_only_top_relese;
 		}
-
+		debug("sess.sess = %u\n", sess.ses);
 		//probably here we unlock.
 		up(&(crdev->sem));
 
