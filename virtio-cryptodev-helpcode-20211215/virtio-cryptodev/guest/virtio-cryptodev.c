@@ -120,6 +120,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
                 perror("ioctl(CIOCGSESSION)");
             }
             *host_return_val = ret;
+            memcpy(session_op, &sess, sizeof(*session_op));
             len = sizeof(*session_op) + sizeof(*host_return_val);
             printf("CIOCGSESSION : return_val = %d, len = %ld\n", ret, len);
             printf("CIOCGSESSION : key = %s\n, cipher = %d\n, keylen = %d\nsessid = %u\nfd = %d\n", 
