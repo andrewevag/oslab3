@@ -18,6 +18,7 @@ OBJ = obj/
 LIBS = -lpthread
 INCLUDE = -I$(PWD)/$(INC)
 INCLUDE += -I$(PWD)/
+INCLUDE += -I$(PWD)/../cryptodev/cryptodev-linux/
 SOURCE = $(wildcard $(SRC)*.c)
 OBJECTS = $(patsubst $(SRC)%.c, $(OBJ)%.o, $(SOURCE))
 # OBJECTS += server.o
@@ -26,7 +27,7 @@ OBJECTS = $(patsubst $(SRC)%.c, $(OBJ)%.o, $(SOURCE))
 BINS = fatherServer childServer serverAN client
 
 all: $(BINS)
-
+	echo $(INCLUDE)
 # server: $(OBJECTS) server.o
 # 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $^
 fatherServer: $(OBJECTS) fatherServer.o
