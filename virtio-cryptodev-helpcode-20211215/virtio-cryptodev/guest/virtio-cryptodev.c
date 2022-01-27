@@ -116,13 +116,13 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             memcpy(&sess, session_op, sizeof(*session_op));
             sess.key = session_key;
             if((ret = ioctl(*host_fd, CIOCGSESSION, &sess))){
-                perror("ioctl(CIOCCRYPT)");
+                perror("ioctl(CIOCGSESSION)");
             }
             *host_return_val = ret;
             len = sizeof(*session_op) + sizeof(*host_return_val);
             printf("CIOCGSESSION : return_val = %d, len = %ld\n", ret, len);
-            printf("CIOCGSESSION : key = %s\n, cipher = %d\n, keylen = %d\n", 
-            (char*)sess.key, sess.cipher, sess.keylen);
+            printf("CIOCGSESSION : key = %s\n, cipher = %d\n, keylen = %d\nsessid = %d\nfd = %d\n", 
+            (char*)sess.key, sess.cipher, sess.keylen, sess.ses, *host_fd);
             break;
         case CIOCFSESSION:
             ses_id = elem->out_sg[3].iov_base;
@@ -161,16 +161,18 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             if(cryp.dst == NULL){
                 printf("CIOCCRYPT malloc failed QEMU cryp.dst\n");
             }
-            printf("CIOCCRYPT src = %s\n iv = %s\nkeylen = %d\nop = %d\naddress of dst %lu\n"
-            , (char*)cryp.src, (char*)cryp.iv, cryp.len, cryp.op, cryp.dst);
+            printf("CIOCCRYPT src = %s\n iv = %s\nkeylen = %d\nop = %d\naddress of dst %lu, session_id = %u\nfd = %d\n"
+            , (char*)cryp.src, (char*)cryp.iv, cryp.len, cryp.op, cryp.dst, cryp.ses, *host_fd);
             if((ret = ioctl(*host_fd, CIOCCRYPT, &cryp))){
                 perror("ioctl(CIOCCRYPT) QEMU");
             }
-            // memcpy(dst, cryp.dst, sizeof(unsigned char) * cryp.len);
-            len = iov_from_buf(elem->in_sg, elem->in_num, 0, cryp.dst, sizeof(unsigned char) * cryp.len);
-            len += sizeof(*host_return_val);
+            
+            memcpy(dst, cryp.dst, sizeof(unsigned char) * cryp.len);
+            memcpy(dst, "geia kai pali", sizeof("geia kai pali"));
+            // len = iov_from_buf(elem->in_sg, elem->in_num, 0, cryp.dst, sizeof(unsigned char) * cryp.len);
+            // len += sizeof(*host_return_val);
             *host_return_val = ret;
-            // len += (sizeof(unsigned char) * cryp.len) + sizeof(*host_return_val);
+            len = (sizeof(unsigned char) * cryp.len) + sizeof(*host_return_val);
             printf("CIOCCRYPT : return_val = %d, len = %ld\n", ret, len);
             break;
         default:
