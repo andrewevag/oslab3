@@ -24,7 +24,8 @@ OBJECTS = $(patsubst $(SRC)%.c, $(OBJ)%.o, $(SOURCE))
 # OBJECTS += server.o
 
 # BINS = socket-server socket-client
-BINS = fatherServer childServer serverAN client
+# BINS = fatherServer childServer serverAN client
+BINS = client epollserver
 
 all: $(BINS)
 	echo $(INCLUDE)

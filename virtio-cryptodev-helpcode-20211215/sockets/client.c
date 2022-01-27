@@ -37,6 +37,8 @@
 char input[BUFSIZ];
 char username[BUFSIZ];
 char password[BUFSIZ];
+int port;
+char servername[256];
 SSI* s;
 //commands will be 
 void handle_create();
@@ -47,7 +49,12 @@ void handle_send();
 void handle_follow();
 void handle_add();
 
-//ssize_t encrypt_insist_write(int fd, const void *buf, size_t cnt);
+ssize_t encrypt_insist_write_wrapper(int fd, const void *buf, size_t cnt)
+{
+	s = ssi_open(servername, port, false, 0);
+	int fd = s->ssi_fd;
+	return encrypt_insist_write(fd, buf, cnt);
+}
 
 int main(int argc, char** argv)
 {
@@ -56,9 +63,10 @@ int main(int argc, char** argv)
 		printf("Usage ./client <address> <port>\n");
 		exit(1);
 	}
-	int port = atoi(argv[2]);
-	s = ssi_open("localhost", port, false, 0);
-	
+	port = atoi(argv[2]);
+	memset(servername, 0, sizeof(servername));
+	memcpy(servername, argv[1], strlen(argv[1]));
+
 	memset(input, 0, sizeof(input));
 	handle_login();
 	while(1)
@@ -100,6 +108,7 @@ int read_response()
 {
 	packet p;
 	decrypt_insist_read(s->ssi_fd, &p, sizeof(packet));
+	ssi_close(s);
 	//here we need to decrypt it.
 	if(p.command == SERVER_SUCCESS){
 		printf(Green"- "RESET_COLOR"%s\n", p.body);
@@ -120,7 +129,7 @@ void handle_login()
 	printf("Enter a password : [only 8 chars will be accepted] : ");
 	scanf("%s", password);
 	packet p = packetCU(username, password);
-	int read = encrypt_insist_write(s->ssi_fd, &p, sizeof(p));
+	int read = encrypt_insist_write_wrapper(s->ssi_fd, &p, sizeof(p));
 	read_response();
 }
 
@@ -130,7 +139,7 @@ void handle_create()
 	printf("channel name to be created : ");
 	scanf("%s", input);
 	packet p = packetC(username, input);
-	int read = encrypt_insist_write(s->ssi_fd, &p, sizeof(p));
+	int read = encrypt_insist_write_wrapper(s->ssi_fd, &p, sizeof(p));
 	read_response();
 
 }
@@ -159,7 +168,7 @@ void handle_send()
 	*cp = 0;
 	packet p;
 	p = packetS(username, password, channelname, input);
-	int read = encrypt_insist_write(s->ssi_fd, &p, sizeof(p));
+	int read = encrypt_insist_write_wrapper(s->ssi_fd, &p, sizeof(p));
 	read_response();
 	memset(input, 0, sizeof(input));
 }
@@ -178,7 +187,7 @@ void handle_follow()
 
 	while(id <= maxid)
 	{
-		int read = encrypt_insist_write(s->ssi_fd, &p, sizeof(p));
+		int read = encrypt_insist_write_wrapper(s->ssi_fd, &p, sizeof(p));
 		maxid = read_response();
 		p.id++;id++;
 	}
@@ -198,16 +207,8 @@ void handle_add()
 	scanf("%s", extrauser);
 
 	packet p = packetA(username, password, channelname, extrauser);
-	int read = encrypt_insist_write(s->ssi_fd, &p, sizeof(p));
+	int read = encrypt_insist_write_wrapper(s->ssi_fd, &p, sizeof(p));
 	read_response();
 
 }
 
-
-
-// ssize_t encrypt_insist_write(int fd, const void *buf, size_t cnt)
-// {
-// 	//encrypt
-
-// 	return insist_write(fd, buf, cnt);
-// }
