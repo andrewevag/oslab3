@@ -385,7 +385,7 @@ int handle_connection(serve_data* req)
 		//decrypt before executing.
 		packet result;
 		decryption(&req->input ,&result, sizeof(result));
-		response = AN_protocol_execute(&req->input);
+		response = AN_protocol_execute(&result);
 		//encrypt before sending response
 		encryption(&response, &result, sizeof(result));
 		memcpy(&response, &result, sizeof(result));
