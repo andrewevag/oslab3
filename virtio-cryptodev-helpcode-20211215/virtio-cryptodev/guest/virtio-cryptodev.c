@@ -115,14 +115,15 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             printf("CIOCGSESSION received host_return_val = %d\n", *host_return_val);
             memcpy(&sess, session_op, sizeof(*session_op));
             sess.key = session_key;
+            printf("CIOCGSESSION session_id before ioctl = %u\n", sess.ses);
             if((ret = ioctl(*host_fd, CIOCGSESSION, &sess))){
                 perror("ioctl(CIOCGSESSION)");
             }
             *host_return_val = ret;
             len = sizeof(*session_op) + sizeof(*host_return_val);
             printf("CIOCGSESSION : return_val = %d, len = %ld\n", ret, len);
-            printf("CIOCGSESSION : key = %s\n, cipher = %d\n, keylen = %d\nsessid = %d\nfd = %d\n", 
-            (char*)sess.key, sess.cipher, sess.keylen, sess.ses, *host_fd);
+            printf("CIOCGSESSION : key = %s\n, cipher = %d\n, keylen = %d\nsessid = %u\nfd = %d\n", 
+            (char*)sess.key, sess.cipher, sess.keylen, (unsigned int)sess.ses, *host_fd);
             break;
         case CIOCFSESSION:
             ses_id = elem->out_sg[3].iov_base;
