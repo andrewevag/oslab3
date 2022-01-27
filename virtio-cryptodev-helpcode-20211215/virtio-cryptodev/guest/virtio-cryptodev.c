@@ -121,6 +121,8 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             *host_return_val = ret;
             len = sizeof(*session_op) + sizeof(*host_return_val);
             printf("CIOCGSESSION : return_val = %d, len = %ld\n", ret, len);
+            printf("CIOCGSESSION : key = %s\n, cipher = %d\n, keylen = %d\n", 
+            (char*)sess.key, sess.cipher, sess.keylen);
             break;
         case CIOCFSESSION:
             ses_id = elem->out_sg[3].iov_base;
@@ -140,11 +142,14 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             dst = elem->in_sg[0].iov_base;
             host_return_val = elem->in_sg[1].iov_base;
             printf("CIOCGSESSION received host_return_val = %d\n", *host_return_val);
+            
             struct crypt_op cryp;
             memcpy(&cryp, crypt_op, sizeof(cryp));
             cryp.src = src;
             cryp.iv = iv;
             cryp.dst = dst;
+            printf("CIOCGSESSION src = %s\n iv = %s\nkeylen = %d\nop = %d\n"
+            , (char*)cryp.src, (char*)cryp.iv, cryp.len, cryp.op);
             if((ret = ioctl(*host_fd, CIOCCRYPT, &cryp))){
                 perror("ioctl(CIOCCRYPT)");
             }

@@ -40,6 +40,10 @@ static int test_crypto(int cfd)
 
 	memset(&sess, 0, sizeof(sess));
 	memset(&cryp, 0, sizeof(cryp));
+	
+	//MINE 
+	memcpy(data.key, "hellothisiskeyfffffffff", KEY_SIZE);
+	memcpy(data.iv, "hellothisisivv3", BLOCK_SIZE);
 
 	if (fill_urandom_buff(data.in) < 0) {		
 		printf("error @filling urandom data\n");
