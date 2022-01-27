@@ -52,7 +52,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
 {
     VirtQueueElement *elem;
     unsigned int *syscall_type;
-    unsigned long len; 
+    unsigned long len = 0; 
     DEBUG_IN();
 
     elem = virtqueue_pop(vq, sizeof(VirtQueueElement));
@@ -115,7 +115,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             printf("CIOCGSESSION received host_return_val = %d\n", *host_return_val);
             memcpy(&sess, session_op, sizeof(*session_op));
             sess.key = session_key;
-            if(ret = ioctl(*host_fd, CIOCGSESSION, &sess)){
+            if((ret = ioctl(*host_fd, CIOCGSESSION, &sess))){
                 perror("ioctl(CIOCCRYPT)");
             }
             *host_return_val = ret;
@@ -145,7 +145,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             cryp.src = src;
             cryp.iv = iv;
             cryp.dst = dst;
-            if(ret = ioctl(*host_fd, CIOCCRYPT, &cryp)){
+            if((ret = ioctl(*host_fd, CIOCCRYPT, &cryp))){
                 perror("ioctl(CIOCCRYPT)");
             }
             *host_return_val = ret;
