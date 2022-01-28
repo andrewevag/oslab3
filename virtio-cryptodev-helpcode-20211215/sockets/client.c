@@ -106,6 +106,7 @@ exit:
 
 int read_response()
 {
+	printf("entered read response\n\n\n\n\n");
 	packet p, q;
 	printf("insist_read = %ld\n",insist_read(s->ssi_fd, &q, sizeof(packet)));
 	decryption(&q, &p, sizeof(packet));
