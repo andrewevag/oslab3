@@ -106,8 +106,9 @@ exit:
 
 int read_response()
 {
-	packet p;
-	decrypt_insist_read(s->ssi_fd, &p, sizeof(packet));
+	packet p, q;
+	insist_read(s->ssi_fd, &q, sizeof(packet));
+	decryption(&q, &p, sizeof(packet));
 	ssi_close(s);
 	//here we need to decrypt it.
 	if(p.command == SERVER_SUCCESS){
