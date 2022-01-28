@@ -99,7 +99,6 @@ int main(int argc, char** argv)
 	}
 
 exit:
-	ssi_close(s);
 	return 0;
 }
 
