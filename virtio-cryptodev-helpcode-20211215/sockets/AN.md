@@ -23,7 +23,7 @@ struct {
 	char arg4[8];       // 8 bytes
 	int length;			//body length
 	int id; 			//optional argument in case of read.
-	char body[256];     // 256 bytes
+	char body[260];     // 260 bytes
 } packet;
 ```
 Τα Question αφορούν ερωτήσεις από τον client προς τον server και αυτές μπορεί να είναι CREATE_USER, CREATE_CHANNEL, ADD_USER, SEND, READ οι οποίες έχουν λειτουργίες :
@@ -44,7 +44,7 @@ struct {
 
 ---
 # Ο Server 
-## αποτελείται από τρία μέρη :
+<!-- ## αποτελείται από τρία μέρη :
 ### - fatherServer :
 Ακούει στις κλήσεις πελατών και τις αναθέτει σε διαφορετικές διεργασίες παιδιά. Είναι υπεύθυνος και για την εκκίνηση του serverAN που δρα ως βάση δεδομένων και επεξεργασία ερωτημάτων.
 
@@ -56,8 +56,8 @@ struct {
 
 ## Διάγραμμα :
 ![ServerArchitecure](AN/serverArchitecture.drawio.png)
----
-
+--- -->
+O s
 ---
 # Ο Client
 Ξεκινά σύνδεση με κάποιον server η διεύθυνση του οποίου καθορίζεται από τα <i>command lines args.</i> Δέχεται commands από τον χρήστη και τις μεταφράζει άμεσα σε δομή <i>packet</i> και την οποία αποστέλλει προς τον server.
