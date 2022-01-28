@@ -389,7 +389,7 @@ int handle_connection(serve_data* req)
 		//encrypt before sending response
 		encryption(&response, &result, sizeof(result));
 		memcpy(&response, &result, sizeof(result));
-		printf("wrote %d\n", insist_write(fd, &response, sizeof(response)));
+		insist_write(fd, &response, sizeof(response));
 		return -1;
 	}
 
