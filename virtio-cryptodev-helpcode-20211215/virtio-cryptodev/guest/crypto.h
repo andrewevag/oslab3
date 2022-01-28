@@ -40,7 +40,8 @@ struct crypto_device {
 
 	struct virtqueue *vq;
 	/* ?? Lock ?? */
-	struct semaphore sem; //this will be used as we wait for QEMU to process data 
+	struct semaphore sem; 
+	//this will be used as we wait for QEMU to process data 
 	//and needs to lock so that noone else can write to vq of the same device.
 	//becuase in that case QEMU will receive trash.
 	//needs to be initialized when new device is attched.

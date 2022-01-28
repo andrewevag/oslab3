@@ -300,6 +300,7 @@ int main()
 				newdata->offset = 0;   //it is already zero it is here for sanity check.
 
 				ev.data.ptr = newdata;
+				//Put client in the set of clients we are handling.
 				if(epoll_ctl(epollfd, EPOLL_CTL_ADD, client_sock, &ev) < 0){
 					fprintf(stderr, "failed to add a client to epoll struct\n");
 					close(client_sock);

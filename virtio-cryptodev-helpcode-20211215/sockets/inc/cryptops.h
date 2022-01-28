@@ -5,7 +5,7 @@
 
 
 /**
- * @brief encrypts data
+ * @brief encrypts data using AES Algorithm
  * 
  * @param input data to be ecrypted
  * @param output encrypted data
@@ -15,7 +15,7 @@ void encryption(unsigned char* input, unsigned char* output,int size);
 
 
 /**
- * @brief decrypts data
+ * @brief decrypts data using AES Algorithm
  * 
  * @param input data to be decrypted
  * @param output decrypted data

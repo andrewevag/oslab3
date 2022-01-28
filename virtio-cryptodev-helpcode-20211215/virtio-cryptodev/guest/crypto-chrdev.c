@@ -107,17 +107,20 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 
 	vq = crdev->vq;
 	
-	
+	//ABSTRACT:
+	/*
+	 * 1. Create the table of lists to send to QEMU.
+	 * 2. Send the data to QEMU and wait for it to emulate the device.
+	 * 3. Send the response back to VM userspace process.
+	 */
 	
 	/**
 	 * We need two sg lists, one for syscall_type and one to get the 
 	 * file descriptor from the host.
 	 **/
-	/* ?? */
-	// addsglist_read(syscall_type, 1);
 	sg_init_one(&syscall_type_sg ,syscall_type, sizeof(*syscall_type) * 1); 
 	sgs[num_out++ + num_in] = &syscall_type_sg;
-	// addsglist_write(host_fd, 1);
+
 	sg_init_one(&host_fd_sg ,host_fd, sizeof(*host_fd) * 1); 
 	sgs[num_out + num_in++] = &host_fd_sg;
 	/**
@@ -133,7 +136,7 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 
 	err = virtqueue_add_sgs(vq, sgs, num_out, num_in,
 							&syscall_type_sg, GFP_ATOMIC); 	//the syscall_type_sg is given as primary key.
-	virtqueue_kick(vq);										//wakes up QEMU.
+	virtqueue_kick(vq);										//wakes up QEMU. VM exit.
 	while (virtqueue_get_buf(vq, &len) == NULL)
 		/* do nothing */;
 
@@ -616,6 +619,10 @@ static struct file_operations crypto_chrdev_fops =
 	.unlocked_ioctl = crypto_chrdev_ioctl,
 };
 
+/*
+ * Called by crypto-module.c when the module is inserted in the kernel
+ * Needs to initialize character device driver.
+ */
 int crypto_chrdev_init(void)
 {
 	int ret;
@@ -624,16 +631,20 @@ int crypto_chrdev_init(void)
 	
 	debug("Initializing character device...");
 	
-	//Association with file_operations.
+	//Association with file_operations the cdev.
 	cdev_init(&crypto_chrdev_cdev, &crypto_chrdev_fops);
 	crypto_chrdev_cdev.owner = THIS_MODULE;
 	
 	dev_no = MKDEV(CRYPTO_CHRDEV_MAJOR, 0);
+	//Informs kernel that our driver handles devices with specific
+	//major and minor numbers. 
 	ret = register_chrdev_region(dev_no, crypto_minor_cnt, "crypto_devs");
 	if (ret < 0) {
 		debug("failed to register region, ret = %d", ret);
 		goto out;
 	}
+	//final initialization of the char devs. Associates cdev 
+	//with devices in specific ranges.
 	ret = cdev_add(&crypto_chrdev_cdev, dev_no, crypto_minor_cnt);
 	if (ret < 0) {
 		debug("failed to add character device");
