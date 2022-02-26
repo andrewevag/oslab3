@@ -1,7 +1,7 @@
 # `oslab3`
 ## `Περιεχόμενα`
-1. [Sockets](#1.-Sockets)
-	1. [Socket Handling](#socket-handling)
+1. [Sockets](#1-Sockets)
+	1. [Socket Handling](#11socket-handling)
 	1. [Πρωτόκολλο-Επικοινωνίας](#1.2-AN-protocol-2.0)
 	1. [Ο server](#1.3-O-Server)
 	1. [O client](#1.4-O-Client)
@@ -20,7 +20,7 @@
 # `1. Sockets`
 ### `1.1 Socket Handling`
 Τα sockets χειρίζονται από ένα Simple Socket Interface ***SSI*** 
-*(definitions από MARC J.ROCHKIND "Programming in UNIX" Simple Socket Interface αλλά **υλοποιημένο ανεξάρτητα από εμάς** [SSI.c](#SSI.c))*
+*(definitions από MARC J.ROCHKIND "Programming in UNIX" Simple Socket Interface αλλά **υλοποιημένο ανεξάρτητα από εμάς** [SSI.c](#SSIc))*
 
 O handle για την χρήση του interface 
 ```C
@@ -31,7 +31,7 @@ typedef struct{
 	char ssi_name_server[SSI_NAME_SIZE];
 } SSI;
 ```
-Οι συναρτήσεις που χρησιμοποιούνται στις υλοποιήσεις των [epollserver.c](#epollserver.c) και [client.c](#client.c)
+Οι συναρτήσεις που χρησιμοποιούνται στις υλοποιήσεις των [epollserver.c](#epollserverc) και [client.c](#clientc)
 ``` C
 /**
  * @brief
@@ -164,7 +164,7 @@ O server χρησιμοποιεί την κλήση συστήματος epoll (
 ### `2.1 Η κρυπτογράφηση στους server και client`
 Και στον server και στον client χρησιμοποιείται το **/dev/crypto** για την κρυπτογράφηση και αποκρυπτογράφηση των δεδομένων. 
 
-Χρησιμοποιούνται οι κλήσεις (οι υλοποιήσεις των οποίων βρίσκονται στο [encrypt.c](#encrypt.c) και [decrypt.c](#decrypt.c)) :
+Χρησιμοποιούνται οι κλήσεις (οι υλοποιήσεις των οποίων βρίσκονται στο [encrypt.c](#encryptc) και [decrypt.c](#decryptc)) :
 ``` C
 /**
  * @brief encrypts data using AES Algorithm
