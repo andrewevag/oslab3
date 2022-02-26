@@ -1,22 +1,26 @@
 # `oslab3`
-## Περιεχόμενα
-1. [Sockets](Sockets)
-	1. [Socket Handling](socket-handling)
-	1. [Πρωτόκολλο-Επικοινωνίας](AN-protocol-2.0)
-	1. [Ο server](O-Server)
-	1. [O client](O-Client)
-1. [Κρυπτογράφηση μηνυμάτων](Κρυπτογράφηση-μηνυμάτων)
-	1. [Η κρυπτογράφηση στους server και client](Η-κρυπτογράφηση-στους-server-και-client)
-	1. [Επιβεβαίωση κρυπτογραφημένων μηνυμάτων](Επιβεβαίωση-κρυπτογραφημένων-μηνυμάτων)
+## `Περιεχόμενα`
+1. [Sockets](1.-Sockets)
+	1. [Socket Handling](1.1-socket-handling)
+	1. [Πρωτόκολλο-Επικοινωνίας](1.2-AN-protocol-2.0)
+	1. [Ο server](1.3-O-Server)
+	1. [O client](1.4-O-Client)
+1. [Κρυπτογράφηση μηνυμάτων](2.-Κρυπτογράφηση-μηνυμάτων)
+	1. [Η κρυπτογράφηση στους server και client](2.1-Η-κρυπτογράφηση-στους-server-και-client)
+	1. [Επιβεβαίωση κρυπτογραφημένων μηνυμάτων](2.2-Επιβεβαίωση-κρυπτογραφημένων-μηνυμάτων)
 1. [Frontend Driver](Frontend-Driver)
-	1. [Δομές Δεδομένων Driver](Δομές-Δεδομένων-Driver)
-	1. [Κατα την εισαγωγή του module](Κατα-την-εισαγωγή-του-module)
-1. Backend Driver
+	1. [Δομές Δεδομένων Driver](3.1-Δομές-Δεδομένων-Driver)
+	1. [Κατα την εισαγωγή του module](3.2-Κατα-την-εισαγωγή-του-module)
+	1. [Πρωτόκολλο μεταφοράς δεδομένων](3.3-Πρωτόκολλο-μεταφοράς-δεδομένων)
+	1. [Περιγραφή συμπεριφοράς system calls στον frontend Driver του VM](3.4-Περιγραφή-συμπεριφοράς-system-calls-στον-frontend-Driver-του-VM)
+1. [Backend Driver]()
+	1. [Περιγραφή λειτουργίας του backend driver](4.1-Περιγραφή-λειτουργίας-του-backend-driver)
+1. [Μέρος του socket source code του οποίου η συμπεριφορά δεν περιγράφηκε στα προηγούμενα](5.-Socket-Source-Code) 
 
 # `1. Sockets`
-## `1.1. Socket Handling`
+### `1.1 Socket Handling`
 Τα sockets χειρίζονται από ένα Simple Socket Interface ***SSI*** 
-*(definitions από MARC J.ROCHKIND "Programming in UNIX" Simple Socket Interface αλλά **υλοποιημένο ανεξάρτητα από εμάς**)*
+*(definitions από MARC J.ROCHKIND "Programming in UNIX" Simple Socket Interface αλλά **υλοποιημένο ανεξάρτητα από εμάς** [SSI.c](SSI.c))*
 
 O handle για την χρήση του interface 
 ```C
@@ -27,7 +31,7 @@ typedef struct{
 	char ssi_name_server[SSI_NAME_SIZE];
 } SSI;
 ```
-Οι συναρτήσεις που χρησιμοποιούνται στις υλοποιήσεις των *epollserver.c* και *client.c*
+Οι συναρτήσεις που χρησιμοποιούνται στις υλοποιήσεις των [epollserver.c](epollserver.c) και [client.c](client.c)
 ``` C
 /**
  * @brief
@@ -74,13 +78,13 @@ SSI* ssi_un_open(char* socketname, bool server, int client_queue);
  */
 int ssi_un_server_accept(SSI* ssip);
 ```
-## `1.2. AN Protocol 2.0`
+### `1.2 AN Protocol 2.0`
 
-Stateless προσέγγιση που απλά ανανεώνει την δυναμική <<βάση δεδομένων>> που υπάρχει στον **epollserver.c**. 
+Stateless προσέγγιση που απλά ανανεώνει την δυναμική <<βάση δεδομένων>> που υπάρχει στον [epollserver.c](epollserver.c). 
 
 Ένα struct μεταφέρεται μεταξύ client και server που περιέχει κάθε δυνατή ερώτηση του client και απάντηση του server.
 
-Αυτό το struct περιγράφεται στο *inc/packet.h* και είναι η ακόλουθη :
+Αυτό το struct είναι το ακόλουθο :
 
 ```C
 enum PACKET_TYPE {
@@ -121,7 +125,7 @@ struct {
 
 
 ---
-## `1.3. O Server` 
+### `1.3 O Server` 
 <!-- ## αποτελείται από τρία μέρη :
 ### - fatherServer :
 Ακούει στις κλήσεις πελατών και τις αναθέτει σε διαφορετικές διεργασίες παιδιά. Είναι υπεύθυνος και για την εκκίνηση του serverAN που δρα ως βάση δεδομένων και επεξεργασία ερωτημάτων.
@@ -153,14 +157,14 @@ O server χρησιμοποιεί την κλήση συστήματος epoll (
 
 ---
 
-## `1.4. O Client`
+### `1.4 O Client`
 Ξεκινά σύνδεση με κάποιον server η διεύθυνση του οποίου καθορίζεται από τα <i>command lines args</i> για κάθε πακέτο που πρόκειται να στείλει. Δέχεται commands από τον χρήστη και τις μεταφράζει άμεσα σε δομή <i>packet</i> την οποία αποστέλλει προς τον server, κρυπτογραφώντας την.
 
 # `2. Κρυπτογράφηση μηνυμάτων`
-## `2.1. Η κρυπτογράφηση στους server και client`
+### `2.1 Η κρυπτογράφηση στους server και client`
 Και στον server και στον client χρησιμοποιείται το **/dev/crypto** για την κρυπτογράφηση και αποκρυπτογράφηση των δεδομένων. 
 
-Χρησιμοποιούνται οι κλήσεις (οι υλοποιήσεις των οποίων βρίσκονται στο *encrypt.c* και *decrypt.c*) :
+Χρησιμοποιούνται οι κλήσεις (οι υλοποιήσεις των οποίων βρίσκονται στο [encrypt.c](encrypt.c) και [decrypt.c](decrypt.c)) :
 ``` C
 /**
  * @brief encrypts data using AES Algorithm
@@ -205,16 +209,16 @@ ssize_t decrypt_insist_read(int fd, void *buf, size_t cnt);
 ```
 ---
 
-## `2.2. Επιβεβαίωση κρυπτογραφημένων μηνυμάτων`
+### `2.2 Επιβεβαίωση κρυπτογραφημένων μηνυμάτων`
 Με χρήση του ***tcpdump*** επιβεβαιώθηκαν πως τα μηνύματα ήταν κρυπτογραφημένα. Συγκεκριμένα χρησιμοποιώντας την εντολή
 ``` shell
 tcpdump -i lo -vvv -XXX port <serverport>
 ```
----
+
 
 
 # `3. Frontend`
-### `3.1. Δομές Δεδομένων Driver` :
+### `3.1 Δομές Δεδομένων Driver` :
 - Μία λίστα με όλες τις συνδεδεμένες συσκευές (τύπου virtio cryptodev)
 ``` C
 struct crypto_driver_data 
@@ -255,7 +259,7 @@ struct crypto_driver_data
 
 ```
 
-### `3.2. Κατα την εισαγωγή του module` : 
+### `3.2 Κατα την εισαγωγή του module` : 
 - Κάνουμε register τον driver να κάνει handle virtio_devices με συγκεκριμένα χαρακτηριστικά (id). Αυτό γίνεται με την κλήση :
 ```C
 	register_virtio_driver(&virtio_crypto);
@@ -264,8 +268,11 @@ struct crypto_driver_data
 ```C 
 	static int virtcons_probe(struct virtio_device *vdev);
 ```
-
-### `3.3. Περιγραφή συμπεριφοράς system calls στον frontend Driver του VM`
+### `3.3 Πρωτόκολλο μεταφοράς δεδομένων`
+Χρησιμοποιείται το προτεινόμενο πρωτόκολλο :
+![virtQueue-protocol.png](virtQueue-protocol.png)
+μόνο που στις περιπτώσεις των buffer οι pointer από structs που μεταβιβάζονται διορθώνονται στην πλευρά του QEMU.
+### `3.4 Περιγραφή συμπεριφοράς system calls στον frontend Driver του VM`
 
 - Ανοίγει userspace process του VM κάποιο /dev/cryptodevX το οποίο διαχειρίζεται ο frontend driver.
 - Ο frontend driver βρίσκει σε ποια εικονική συσκευή virtio αντιστοιχεί το /dev/cryptodevX (inode) για να βρει με ποια vq θα μιλήσει στον QEMU.
@@ -278,7 +285,7 @@ struct crypto_driver_data
 	```
 - Ο driver στέλνει πληροφορίες στον QEMU μέσω του virtio protocol (virtio_ring), καλεί  μέσω VirtualQueues.
 	
-	Π.χ. για την open
+	Π.χ. για την open η ετοιμασία της δομής προς αποστολή :
 	```C
 		struct scatterlist syscall_type_sg, host_fd_sg, *sgs[2];
 		sg_init_one(&syscall_type_sg ,syscall_type, sizeof(*syscall_type) * 1); 
@@ -297,7 +304,7 @@ struct crypto_driver_data
 		virtqueue_kick(vq);			
 	```
 - O KVM παρεμβαίνει και μεταφέρει τα δεδομένα των virtQueues στον QEMU.
-- Ο QEMU ανοίγει file descritpor στον host μηχάνημα που αφορά τον cryptodev driver που διαχειρίζεται πραγματική συσκευή.
+- Ο QEMU ανοίγει file descriptor στον host μηχάνημα που αφορά τον cryptodev driver που διαχειρίζεται πραγματική συσκευή και το διατηρεί ανοιχτό για τις μελλοντικές κλήσεις του frontend driver.
 - Ο QEMU απαντά στον frontend driver μέσω των VirtualQueues (βάζοντας τον KVM να αποστείλει). Καλείται σε interrupt context η *vq_has_data* η οποία δεν κάνει τίποτα και απλά επιστρέφει. Ο frontend driver βρίσκεται σε ένα busy wait state όπου περιμένει σύγχρονα τα δεδομένα από το VirtQueue.
 Αφού τα λάβει διαβάζει τα δεδομένα και αφήνει το lock. 
 	``` C
@@ -313,8 +320,289 @@ struct crypto_driver_data
 	```
 
 
+# `4. Backend Driver`
+### `4.1 Περιγραφή λειτουργίας του backend driver`
+- Αρχικά ορίζεται νέα συσκευή η ***virtio-cryptodev-pci*** στο QEMU σύμφωνα με το μοντέλο συσκευών του η οποία κληρονομεί τον τύπο *TYPE_VIRTIO_PCI*.
+- Σε αυτήν ορίζεται η συνάρτηση που καλείται *vq_handle_output* όταν υπάρχει έτοιμο virtQueue και έχει κληθεί η *virtqueue_kick* από τον frontend οδηγό οπότε ο έλεγχος μεταβιβάζεται στον QEMU από τον KVM.
+- Ο QEMU μπορεί πλέον να διαβάσει το virtQueue και να προσομοιώσει την συμπεριφορά που ζητείται από τον frontend οδηγό ανοίγοντας έναν file descriptor στην πραγματική συσκευή ***/dev/crypto*** στο host μηχάνημα. Ο host_fd και ο τύπος της κλήσης μεταβιβάζεται στις μελλοντικές κλήσεις από τον frontend driver.
+	```C
+		syscall_type = elem->out_sg[0].iov_base;
+		switch (*syscall_type) {
+    	case VIRTIO_CRYPTODEV_SYSCALL_TYPE_OPEN:
+			...
+			int fd = open("/dev/crypto", O_RDWR);
+			...
+			break;
+		case VIRTIO_CRYPTODEV_SYSCALL_TYPE_CLOSE:
+			...
+			host_fd = elem->out_sg[1].iov_base;
+			close(*host_fd);
+			...
+			break;
+			
+		case VIRTIO_CRYPTODEV_SYSCALL_TYPE_IOCTL:
+			...
+				switch (*ioctl_cmd){
+				case CIOCGSESSION:
+					...
+					if((ret = ioctl(*host_fd, CIOCGSESSION, &sess))){
+						...
+					}
+					...
+					break;
+				case CIOCFSESSION:
+            		if((ret = ioctl(*host_fd, CIOCFSESSION, ses_id))){
+						...
+					}
+					...
+					break;
+				case CIOCCRYPT:
+					...
+            		if((ret = ioctl(*host_fd, CIOCCRYPT, &cryp))){
+						...
+					}
+					...
+					break;
+				}
+		break;
+		}
+
+	```
+# `5. Socket Source Code`
+## `SSI.c`
+```C
+#include "SSI.h"
+#include <stdbool.h>
+#include <stdio.h>
+#include <errno.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include "SafeCalls.h"
+#include <sys/un.h>
+#include "linkedlist.h"
+SSI* ssi_open(char* name, uint16_t port, bool server, int tcp_backlog)
+{
+	if(server) {
+		int sd;
+		struct sockaddr_in sa;
+		
+		if ((sd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+			perror("socket");
+			exit(1);
+		}
+		fprintf(stderr, "Created TCP socket\n");
+
+		/* Bind to a port */
+		memset(&sa, 0, sizeof(sa));
+		sa.sin_family = AF_INET;
+		sa.sin_port = htons(port);
+		sa.sin_addr.s_addr = htonl(INADDR_ANY);
+		
+		if (bind(sd, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
+			perror("bind");
+			exit(1);
+		}
+		fprintf(stderr, "Bound TCP socket to port %d\n", port);
+		
+		if (listen(sd, tcp_backlog) < 0) {
+			perror("listen");
+			exit(1);
+		}
+
+		SSI* ssi = sfmalloc(sizeof(SSI));
+		ssi->ssi_fd = sd;
+		memset(ssi->ssi_name_server, 0, sizeof(ssi->ssi_name_server));
+
+		ssi->port = port;
+		ssi->ssi_server = true;
+		return ssi;
+	}
+	//client
+	else{
+		int sd;
+		char *hostname = name;
+		struct hostent *hp;
+		struct sockaddr_in sa;
+
+		if ((sd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+			perror("socket");
+			exit(1);
+		}
+		fprintf(stderr, "Created TCP socket\n");
+
+		/* Look up remote hostname on DNS */
+		if ( !(hp = gethostbyname(hostname))) {
+			printf("DNS lookup failed for host %s\n", hostname);
+			exit(1);
+		}
+
+		/* Connect to remote TCP port */
+		sa.sin_family = AF_INET;
+		sa.sin_port = htons(port);
+		memcpy(&sa.sin_addr.s_addr, hp->h_addr, sizeof(struct in_addr));
+		fprintf(stderr, "Connecting to remote host... "); fflush(stderr);
+		if (connect(sd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+			perror("connect");
+			exit(1);
+		}
+		fprintf(stderr, "Connected.\n");
+		SSI* ssi = sfmalloc(sizeof(SSI));
+		ssi->port = port;
+		ssi->ssi_fd = sd;
+		strcpy(ssi->ssi_name_server, hostname);
+		ssi->ssi_server = false;
+		return ssi;
+	}
+}
 
 
+int ssi_server_accept(SSI* ssip)
+{
+	if(!ssip->ssi_server){
+		fprintf(stderr, "You gave me a client to accpet a server ...\n");
+		return -1;
+	}
+	struct sockaddr_in sa;
+	socklen_t len;
+	int newsd;
+	char addrstr[INET_ADDRSTRLEN];
+	int sd = ssip->ssi_fd;
+
+	if ((newsd = accept(sd, (struct sockaddr *)&sa, &len)) < 0) {
+		perror("accept");
+		return -1;
+	}
+	if (!inet_ntop(AF_INET, &sa.sin_addr, addrstr, sizeof(addrstr))) {
+		perror("could not format IP address");
+		return -1;
+	}
+	fprintf(stderr, "Incoming connection from %s:%d\n", addrstr, ntohs(sa.sin_port));
+
+	return newsd;
+}
+
+
+bool ssi_close(SSI* ssip)
+{
+	//  i leave space for future edits to it.
+	if(ssip->ssi_server)
+	{
+		close(ssip->ssi_fd);
+		free(ssip);
+		return true;
+	}
+	else
+	{
+		close(ssip->ssi_fd);
+		free(ssip);
+		return true;
+	}
+}
+
+
+SSI* ssi_un_open(char* socketname, bool server, int client_queue)
+{
+	if(!server){
+		struct sockaddr_un addr;
+		int directorSock;
+		directorSock = errorcheck(socket(AF_UNIX, SOCK_STREAM, 0), -1, "create unix socket as a child\n");
+		memset(&addr, 0, sizeof(addr));
+		addr.sun_family=AF_UNIX;
+		strncpy(addr.sun_path, socketname, sizeof(addr.sun_path)-1);
+		printf("trying to connect to %s\n", socketname);
+		errorcheck(connect(directorSock, (struct sockaddr*)&addr, sizeof(addr)), -1, "failed to connect to unix socket");
+		SSI* s = sfmalloc(sizeof(SSI));
+		s->ssi_fd = directorSock;
+		s->ssi_server = false;
+		memcpy(s->ssi_name_server, socketname, strlen(socketname));
+		return s;
+	}else{
+		struct sockaddr_un addr;
+		int sock = errorcheck(socket(AF_UNIX, SOCK_STREAM, 0), -1, "error creating unix socket");
+		memset(&addr, 0, sizeof(addr));
+		addr.sun_family = AF_UNIX;
+		memcpy(addr.sun_path, socketname, sizeof(addr.sun_path)-1);
+		// errorcheck(unlink(socketname), -1, "[director] failed to unlink socket");
+		errorcheck(bind(sock, (struct sockaddr*)&addr, sizeof(addr)), -1, " failed to bind to unix socket");
+		errorcheck(listen(sock, client_queue), -1, "unixsock listen failed");
+		SSI* s = sfmalloc(sizeof(SSI));
+		s->ssi_fd = sock;
+		s->ssi_server = true;
+		memcpy(s->ssi_name_server, socketname, strlen(socketname));
+		return s;
+	}
+}
+
+int ssi_un_server_accept(SSI* ssip)
+{
+	if(ssip->ssi_server != true)
+	{
+		fprintf(stderr, "you gave me a clent to accept conn un sock\n");
+		return -1;
+	}
+	int client = accept(ssip->ssi_fd, NULL, NULL);
+	return client;
+}
+```
+## `part of packet.h and packet.c`
+```C
+packet format_wrapper(PACKET_TYPE t, COMMAND_TYPE cmd, char* arg1,
+char* arg2, char* arg3, char* arg4, int length, int id, 
+char* body);
+
+#define packetCU(username, password) format_wrapper(QUESTION, CREATE_USER, username, password, NULL, NULL, 0, 0, NULL)
+
+#define packetC(username, channelname) format_wrapper(QUESTION, CREATE_CHANNEL, username, NULL, channelname, NULL, 0, 0, NULL)
+
+#define packetA(username, password, channelname, secondusername) format_wrapper(QUESTION, ADD_USER, username, password, channelname, secondusername, 0, 0, NULL)
+
+#define packetR(username, password, channelname, id) format_wrapper(QUESTION, READ, username, password, channelname, NULL, 0, id, NULL)
+
+#define packetS(username, password, channelname, msg) format_wrapper(QUESTION, SEND, username, password, channelname, NULL, strlen(msg),0, msg)
+
+#define packetServerS(msg) format_wrapper(ANSWER, SERVER_SUCCESS, NULL, NULL, NULL, NULL, strlen(msg), 0, msg)
+
+#define packetServerF(msg) format_wrapper(ANSWER, SERVER_FAILURE, NULL, NULL, NULL, NULL, strlen(msg), 0, msg)
+
+packet format_wrapper(PACKET_TYPE t, COMMAND_TYPE cmd, char* arg1,
+char* arg2, char* arg3, char* arg4, int length, int id, 
+char* body)
+{
+	packet p;
+	memset(&p, 0, sizeof(p));
+	p.packet_type = t;
+	p.command = cmd;
+	if(arg1 != NULL){
+		memcpy(p.arg1, arg1, strlen(arg1));
+	}
+	if(arg2 != NULL){
+		memcpy(p.arg2, arg2, strlen(arg2));
+	}
+	if(arg3 != NULL){
+		memcpy(p.arg3, arg3, strlen(arg3));
+	}
+	if(arg4 != NULL){
+		memcpy(p.arg4, arg4, strlen(arg4));
+	}
+	p.length = length;
+	p.id = id;
+	if(body != NULL){
+		memcpy(p.body, body, length);
+	}
+
+	return p;
+}
+
+```
 ## `epollserver.c`
 ```C
 #include <fcntl.h>
@@ -693,4 +981,369 @@ int handle_connection(serve_data* req)
 	// write(fd, buf, nread);
 	return 1;
 }
+```
+
+## `client.c`
+```C
+#include <stdio.h>
+#include <errno.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <fcntl.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdbool.h>
+#include "socket-common.h"
+#include <sys/wait.h>
+#include <sys/un.h>
+#include "linkedlist.h"
+#include "anutil.h"
+#include "Astring.h"
+#include "packet.h"
+#include "packet_parser.h"
+#include "SSI.h"
+#include "cryptops.h"
+
+#define Black "\033[0;30m"
+#define Red "\033[0;31m"
+#define Green "\033[0;32m"
+#define Yellow "\033[0;33m"
+#define Blue "\033[0;34m"
+#define Purple "\033[0;35m"
+#define Cyan "\033[0;36m"
+#define White "\033[0;37m"
+#define RESET_COLOR "\e[m"
+
+char input[BUFSIZ];
+char username[BUFSIZ];
+char password[BUFSIZ];
+int port;
+char servername[256];
+SSI* s;
+//commands will be 
+void handle_create();
+void handle_login();
+int read_response();
+void handle_help();
+void handle_send();
+void handle_follow();
+void handle_add();
+
+ssize_t encrypt_insist_write_wrapper(const void *buf, size_t cnt)
+{
+	s = ssi_open(servername, port, false, 0);
+	int fd = s->ssi_fd;
+	return encrypt_insist_write(fd, buf, cnt);
+}
+
+int main(int argc, char** argv)
+{
+	
+	if(argc != 3){
+		printf("Usage ./client <address> <port>\n");
+		exit(1);
+	}
+	port = atoi(argv[2]);
+	memset(servername, 0, sizeof(servername));
+	memcpy(servername, argv[1], strlen(argv[1]));
+
+	memset(input, 0, sizeof(input));
+	handle_login();
+	while(1)
+	{
+		printf("> ");
+		scanf("%s", input);
+		if(!strcmp(input, "exit")){
+			goto exit;
+		}
+		else if(!strcmp(input, "create")){
+			handle_create();
+		}
+		else if(!strcmp(input, "send")){
+			handle_send();
+		}
+		else if(!strcmp(input, "follow")){
+			handle_follow();
+		}
+		else if(!strcmp(input, "help")){
+			handle_help();
+		}
+		else if(!strcmp(input, "add")){
+			handle_add();
+		}
+		else{
+			printf(Red"-"RESET_COLOR" Uknown command (try help)\n");
+		}
+		memset(input, 0, sizeof(input));
+
+	}
+
+exit:
+	return 0;
+}
+
+
+int read_response()
+{
+	packet p, q;
+	insist_read(s->ssi_fd, &q, sizeof(packet));
+	decryption(&q, &p, sizeof(packet));
+	
+	ssi_close(s);
+	//here we need to decrypt it.
+	if(p.command == SERVER_SUCCESS){
+		printf(Green"- "RESET_COLOR"%s\n", p.body);
+		return p.id;
+	}
+	else if(p.command == SERVER_FAILURE){
+		printf(Red"- "RESET_COLOR"%s\n", p.body);
+	}
+	return 0;
+}
+
+void handle_login()
+{
+	memset(username, 0, sizeof(username));
+	memset(password, 0, sizeof(password));
+	printf("Enter a username [only 8 chars will be accepted] : ");
+	scanf("%s", username);
+	printf("Enter a password : [only 8 chars will be accepted] : ");
+	scanf("%s", password);
+	packet p = packetCU(username, password);
+	int read = encrypt_insist_write_wrapper(&p, sizeof(p));
+	read_response();
+}
+
+void handle_create()
+{
+	memset(input, 0, sizeof(input));
+	printf("channel name to be created : ");
+	scanf("%s", input);
+	packet p = packetC(username, input);
+	int read = encrypt_insist_write_wrapper(&p, sizeof(p));
+	read_response();
+
+}
+
+void handle_help(){
+	printf("Available Commands Are :\n"Blue"create\t"RESET_COLOR"to create newchannel\n");
+	printf(Blue"follow\t"RESET_COLOR"read contents of a channel\n");
+	printf(Blue"send\t"RESET_COLOR"send msg to a channel\n");
+	printf(Blue"add\t"RESET_COLOR"add user to a channel\n");
+	printf(Blue"exit\t"RESET_COLOR"terminate connection\n");
+	
+}
+
+void handle_send()
+{
+	memset(input, 0, sizeof(input));
+	char channelname[BUFSIZ];
+	printf("channel : ");
+	scanf("%s", channelname);
+	printf("Enter message >");
+	scanf("\n");
+	memset(input, 0, sizeof(input));
+	int nread = 0, n;
+	fgets(input, PACKET_MAX_BODY_LENGTH, stdin);
+	char* cp = strchr(input, '\n');
+	*cp = 0;
+	packet p;
+	p = packetS(username, password, channelname, input);
+	int read = encrypt_insist_write_wrapper(&p, sizeof(p));
+	read_response();
+	memset(input, 0, sizeof(input));
+}
+
+
+void handle_follow()
+{
+	memset(input, 0, sizeof(input));
+	char channelname[BUFSIZ];
+	printf("channel : ");
+	scanf("%s", channelname);
+	//now get all msges from that channel.
+	int id = 0;
+	packet p = packetR(username, password, channelname, id);
+	int maxid = id+1;
+
+	while(id <= maxid)
+	{
+		int read = encrypt_insist_write_wrapper(&p, sizeof(p));
+		maxid = read_response();
+		p.id++;id++;
+	}
+
+}
+
+
+void handle_add()
+{
+	memset(input, 0, sizeof(input));
+	char channelname[BUFSIZ];
+	printf("channel : ");
+	scanf("%s", channelname);
+	char extrauser[BUFSIZ];
+	memset(extrauser, 0, sizeof(extrauser));
+	printf("user : ");
+	scanf("%s", extrauser);
+
+	packet p = packetA(username, password, channelname, extrauser);
+	int read = encrypt_insist_write_wrapper(&p, sizeof(p));
+	read_response();
+
+}
+
+
+```
+## `encrypt.c`
+```C
+#include "socket-common.h"
+#include "crypto/cryptodev.h"
+#include <sys/ioctl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include "linkedlist.h"
+#include "cryptops.h"
+#include "SafeCalls.h"
+#include "anutil.h"
+
+/**
+ * @brief encrypts data
+ * 
+ * @param input data to be ecrypted
+ * @param output encrypted data
+ * @param size size of input/output data
+ */
+void encryption(unsigned char* input, unsigned char* output,int size){
+	
+	int fd = open(CRYPTODEV_NODE, O_RDWR);
+    errorcheck(fd,-1,"open(/dev/crypto) {encrypt}");
+
+    unsigned char key[] = KEY;
+    unsigned char iv[] = IV;
+
+    struct session_op sess;
+    struct crypt_op cryp;
+
+    memset(&sess, 0, sizeof(sess));
+	memset(&cryp, 0, sizeof(cryp));
+
+    /*
+	 * Get crypto session for AES128
+	 */
+	sess.cipher = CRYPTO_AES_CBC;
+	sess.keylen = KEY_SIZE;
+	sess.key = key;
+
+	errorcheck(!ioctl(fd, CIOCGSESSION, &sess),0, "ioctl(CIOCGSESSION) {encrypt}" );
+
+    /*
+	 * Encrypt input to output
+	 */
+	cryp.ses = sess.ses;
+	cryp.len = size;
+	cryp.src = input;
+	cryp.dst = output;
+	cryp.iv = iv;
+	cryp.op = COP_ENCRYPT;
+
+	errorcheck(!ioctl(fd, CIOCCRYPT, &cryp),0, "ioctl(CIOCCRYPT) {encrypt}" );
+
+    /*Finish crypto session*/
+    errorcheck(!ioctl(fd, CIOCFSESSION, &sess.ses),0,"ioctl(CIOCFSESSION) {encrypt}");
+
+    errorcheck(close(fd),-1,"close(/dev/crypto) {encrypt}");
+
+}
+
+
+ssize_t encrypt_insist_write(int fd, void* buf, size_t cnt){
+	unsigned char* bufout = sfmalloc(cnt);
+	memset(bufout, 0, cnt);
+	encryption(buf,bufout,cnt);
+	return insist_write(fd,bufout,cnt);
+}
+
+```
+
+## `decrypt.c`
+```C
+#include "socket-common.h"
+#include "crypto/cryptodev.h"
+#include <sys/ioctl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include "linkedlist.h"
+#include "cryptops.h"
+#include "SafeCalls.h"
+#include "anutil.h"
+
+/**
+ * @brief encrypts data
+ * 
+ * @param input data to be ecrypted
+ * @param output encrypted data
+ * @param size size of input/output data
+ */
+void encryption(unsigned char* input, unsigned char* output,int size){
+	
+	int fd = open(CRYPTODEV_NODE, O_RDWR);
+    errorcheck(fd,-1,"open(/dev/crypto) {encrypt}");
+
+    unsigned char key[] = KEY;
+    unsigned char iv[] = IV;
+
+    struct session_op sess;
+    struct crypt_op cryp;
+
+    memset(&sess, 0, sizeof(sess));
+	memset(&cryp, 0, sizeof(cryp));
+
+    /*
+	 * Get crypto session for AES128
+	 */
+	sess.cipher = CRYPTO_AES_CBC;
+	sess.keylen = KEY_SIZE;
+	sess.key = key;
+
+	errorcheck(!ioctl(fd, CIOCGSESSION, &sess),0, "ioctl(CIOCGSESSION) {encrypt}" );
+
+    /*
+	 * Encrypt input to output
+	 */
+	cryp.ses = sess.ses;
+	cryp.len = size;
+	cryp.src = input;
+	cryp.dst = output;
+	cryp.iv = iv;
+	cryp.op = COP_ENCRYPT;
+
+	errorcheck(!ioctl(fd, CIOCCRYPT, &cryp),0, "ioctl(CIOCCRYPT) {encrypt}" );
+
+    /*Finish crypto session*/
+    errorcheck(!ioctl(fd, CIOCFSESSION, &sess.ses),0,"ioctl(CIOCFSESSION) {encrypt}");
+
+    errorcheck(close(fd),-1,"close(/dev/crypto) {encrypt}");
+
+}
+
+
+ssize_t encrypt_insist_write(int fd, void* buf, size_t cnt){
+	unsigned char* bufout = sfmalloc(cnt);
+	memset(bufout, 0, cnt);
+	encryption(buf,bufout,cnt);
+	return insist_write(fd,bufout,cnt);
+}
+
 ```
