@@ -56,6 +56,7 @@ out:
 	return crdev;
 }
 
+
 /*************************************
  * Implementation of file operations
  * for the Crypto character device
@@ -113,7 +114,7 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	 * 2. Send the data to QEMU and wait for it to emulate the device.
 	 * 3. Send the response back to VM userspace process.
 	 */
-	
+
 	/**
 	 * We need two sg lists, one for syscall_type and one to get the 
 	 * file descriptor from the host.
