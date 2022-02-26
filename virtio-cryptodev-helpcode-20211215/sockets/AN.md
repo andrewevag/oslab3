@@ -1,15 +1,16 @@
 # `oslab3`
 ## Περιεχόμενα
-1. Sockets
+1. [Sockets](Sockets)
 	1. [Socket Handling](socket-handling)
 	1. [Πρωτόκολλο-Επικοινωνίας](AN-protocol-2.0)
 	1. [Ο server](O-Server)
 	1. [O client](O-Client)
-1. Κρυπτογράφηση μηνυμάτων
+1. [Κρυπτογράφηση μηνυμάτων](Κρυπτογράφηση-μηνυμάτων)
 	1. [Η κρυπτογράφηση στους server και client](Η-κρυπτογράφηση-στους-server-και-client)
 	1. [Επιβεβαίωση κρυπτογραφημένων μηνυμάτων](Επιβεβαίωση-κρυπτογραφημένων-μηνυμάτων)
-1. Frontend Driver
+1. [Frontend Driver](Frontend-Driver)
 	1. [Δομές Δεδομένων Driver](Δομές-Δεδομένων-Driver)
+	1. [Κατα την εισαγωγή του module](Κατα-την-εισαγωγή-του-module)
 1. Backend Driver
 
 # `1. Sockets`
@@ -254,7 +255,7 @@ struct crypto_driver_data
 
 ```
 
-### `Κατα την εισαγωγή του module` : 
+### `3.2. Κατα την εισαγωγή του module` : 
 - Κάνουμε register τον driver να κάνει handle virtio_devices με συγκεκριμένα χαρακτηριστικά (id). Αυτό γίνεται με την κλήση :
 ```C
 	register_virtio_driver(&virtio_crypto);
@@ -264,7 +265,7 @@ struct crypto_driver_data
 	static int virtcons_probe(struct virtio_device *vdev);
 ```
 
-### `Περιγραφή συμπεριφοράς system calls στον frontend Driver του VM`
+### `3.3. Περιγραφή συμπεριφοράς system calls στον frontend Driver του VM`
 
 - Ανοίγει userspace process του VM κάποιο /dev/cryptodevX το οποίο διαχειρίζεται ο frontend driver.
 - Ο frontend driver βρίσκει σε ποια εικονική συσκευή virtio αντιστοιχεί το /dev/cryptodevX (inode) για να βρει με ποια vq θα μιλήσει στον QEMU.
@@ -280,12 +281,36 @@ struct crypto_driver_data
 	Π.χ. για την open
 	```C
 		struct scatterlist syscall_type_sg, host_fd_sg, *sgs[2];
-		
+		sg_init_one(&syscall_type_sg ,syscall_type, sizeof(*syscall_type) * 1); 
+		sgs[num_out++ + num_in] = &syscall_type_sg;
+
+		sg_init_one(&host_fd_sg ,host_fd, sizeof(*host_fd) * 1); 
+		sgs[num_out + num_in++] = &host_fd_sg;
 	```
-- Καλεί την kick() (hypercall) και κάνει VM_exit (σαν trap).
+- Καλεί την virtqueue_kick() (hypercall) και κάνει VM_exit (σαν trap) αφού έχει πάρει το lock για το συγκεκριμένο VirtQueue.
+	```C
+		if(down_interruptible(&(crdev->sem))){
+			...
+		}
+		err = virtqueue_add_sgs(vq, sgs, num_out, num_in,
+							&syscall_type_sg, GFP_ATOMIC); 	//the syscall_type_sg is given as primary key.
+		virtqueue_kick(vq);			
+	```
 - O KVM παρεμβαίνει και μεταφέρει τα δεδομένα των virtQueues στον QEMU.
 - Ο QEMU ανοίγει file descritpor στον host μηχάνημα που αφορά τον cryptodev driver που διαχειρίζεται πραγματική συσκευή.
-- Ο QEMU απαντά στον frontend driver μέσω των VirtualQueues (βάζοντας τον KVM να αποστείλει).
+- Ο QEMU απαντά στον frontend driver μέσω των VirtualQueues (βάζοντας τον KVM να αποστείλει). Καλείται σε interrupt context η *vq_has_data* η οποία δεν κάνει τίποτα και απλά επιστρέφει. Ο frontend driver βρίσκεται σε ένα busy wait state όπου περιμένει σύγχρονα τα δεδομένα από το VirtQueue.
+Αφού τα λάβει διαβάζει τα δεδομένα και αφήνει το lock. 
+	``` C
+		while (virtqueue_get_buf(vq, &len) == NULL)
+		/* do nothing */;
+
+		//now qemu has written everything it was suppossed to.	
+		
+		// read returned data
+		...
+		up(&(crdev->sem));
+
+	```
 
 
 
