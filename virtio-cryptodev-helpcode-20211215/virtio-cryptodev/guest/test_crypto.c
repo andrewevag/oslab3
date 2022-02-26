@@ -40,6 +40,10 @@ static int test_crypto(int cfd)
 
 	memset(&sess, 0, sizeof(sess));
 	memset(&cryp, 0, sizeof(cryp));
+	
+	//MINE 
+	// memcpy(data.key, "hellothisiskeyfffffffff", KEY_SIZE);
+	// memcpy(data.iv, "hellothisisivv3", BLOCK_SIZE);
 
 	if (fill_urandom_buff(data.in) < 0) {		
 		printf("error @filling urandom data\n");
@@ -61,7 +65,7 @@ static int test_crypto(int cfd)
 		perror("ioctl(CIOCGSESSION)");
 		return 1;
 	}
-
+	printf("session after ioctl = %u\n", sess.ses);
 	/**
 	 *  Encrypt data.in to data.encrypted
 	 **/
@@ -73,10 +77,12 @@ static int test_crypto(int cfd)
 	cryp.dst = (__u8 __user *)data.encrypted;
 	cryp.iv = (__u8 __user *)data.iv;
 	cryp.op = COP_ENCRYPT;
+	printf("session before 2nd ioctl = %u\n", cryp.ses);
 	if (ioctl(cfd, CIOCCRYPT, &cryp)) {
 		perror("ioctl(CIOCCRYPT)");
 		return 1;
 	}
+	printf("session after 2nd ioctl = %u\n", cryp.ses);
 	printf("[OK]\n");
 
 	/**

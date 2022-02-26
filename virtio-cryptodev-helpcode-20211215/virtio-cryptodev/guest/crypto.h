@@ -26,17 +26,25 @@ extern struct crypto_driver_data crdrvdata;
 
 
 /**
- * Device info.
+ * Device info. //this is for each cryptodev device that is being -connected- to the VM handled and allocated by us.
  **/
 struct crypto_device {
 	/* Next crypto device in the list, head is in the crdrvdata struct */
 	struct list_head list;
 
 	/* The virtio device we are associated with. */
+	//this is the structure that is passed when the kernel recognizes a new virtio device that has the same
+	// id as the ones we are handling and
+	//passes this struct.
 	struct virtio_device *vdev;
 
 	struct virtqueue *vq;
 	/* ?? Lock ?? */
+	struct semaphore sem; 
+	//this will be used as we wait for QEMU to process data 
+	//and needs to lock so that noone else can write to vq of the same device.
+	//becuase in that case QEMU will receive trash.
+	//needs to be initialized when new device is attched.
 
 	/* The minor number of the device. */
 	unsigned int minor;

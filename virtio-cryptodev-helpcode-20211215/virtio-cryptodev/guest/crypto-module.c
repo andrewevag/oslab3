@@ -53,6 +53,8 @@ static int virtcons_probe(struct virtio_device *vdev)
 	}
 
 	crdev->vdev = vdev;
+	//priv is private pointer for driver's use and we allocate it to the virtio_device
+	//so we can get which one of our representation (crypto_devices) it refers to
 	vdev->priv = crdev;
 
 	crdev->vq = find_vq(vdev);
@@ -63,6 +65,8 @@ static int virtcons_probe(struct virtio_device *vdev)
 
 	/* Other initializations. */
 	/* ?? */
+	//returns void.
+	sema_init(&(crdev->sem), 1);
 
 	/**
 	 * Grab the next minor number and put the device in the driver's list. 
@@ -136,6 +140,7 @@ static int __init init(void)
 
 	INIT_LIST_HEAD(&crdrvdata.devs);
 	spin_lock_init(&crdrvdata.lock);
+	crdrvdata.next_minor = 0;
 
 	/* Register the virtio driver. */
 	ret = register_virtio_driver(&virtio_crypto);

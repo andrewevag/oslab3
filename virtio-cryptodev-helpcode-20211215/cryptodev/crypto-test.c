@@ -90,6 +90,7 @@ static int test_crypto(int cfd)
 		perror("getting data from /dev/urandom\n");
 		return 1;
 	}
+	
 
 	if (fill_urandom_buf(data.key, KEY_SIZE) < 0) {
 		perror("getting data from /dev/urandom\n");

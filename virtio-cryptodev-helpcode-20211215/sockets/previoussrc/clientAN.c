@@ -29,30 +29,9 @@
 #include "ANutils/channel.h"
 #include "ANutils/user.h"
 #include "ANutils/message.h"
+#include "utillib/anutil.h"
+#include "utillib/Astring.h"
 #define MAX_MSIZE 4096
-
-
-/* Insist until all of the data has been written */
-ssize_t insist_write(int fd, const void *buf, size_t cnt)
-{
-	ssize_t ret;
-	size_t orig_cnt = cnt;
-	
-	while (cnt > 0) {
-	        ret = write(fd, buf, cnt);
-	        if (ret < 0)
-	                return ret;
-	        buf += ret;
-	        cnt -= ret;
-	}
-
-	return orig_cnt;
-}
-
-void safe_write(int fd, const void *buf, size_t cnt){
-	errorcheck(insist_write(fd, buf, cnt) <0, 1, "failed to send @safe write");
-}
-#define const_safe_write(fd, cswbuf) safe_write(fd, cswbuf, sizeof(cswbuf))
 
 
 list* splitToPackets(char* str, int length, int* restleft)
@@ -187,6 +166,7 @@ int main(int argc, char *argv[])
             ns = read(sd, sock_buf+readsock, sizeof(sock_buf));
             readsock +=ns;
             errorcheck(ns,-1,"read from socket failed\n");
+			printf("[client read] %s\n", sock_buf);
             char* cp = strchr(sock_buf,'|');
             if(cp != NULL){
                 int i,j;

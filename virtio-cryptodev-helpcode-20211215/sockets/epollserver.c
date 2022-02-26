@@ -1,5 +1,9 @@
-#include <stdio.h>
+#include <fcntl.h>
+#include <sys/epoll.h>
 #include <errno.h>
+#include "SafeCalls.h"
+#include <errno.h>
+#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,7 +13,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <fcntl.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdbool.h>
@@ -20,10 +23,24 @@
 #include "message.h"
 #include "anutil.h"
 #include "Astring.h"
-#include <sys/un.h>
 #include "SSI.h"
 #include "packet.h"
 #include "packet_parser.h"
+#include "cryptops.h"
+
+
+#define MAX_EVENTS 1024
+//i want to specify a data type to hold for each handler at any given point
+typedef struct {
+	packet input;  // the input packet
+	size_t offset; // how much of the packet is read.
+	int fd;		   // the file descriptor that associates the received packet and client.
+} serve_data;
+
+
+int set_non_blocking(int sockfd);
+int handle_connection(serve_data* req);
+
 
 list* userlist;
 list* channellist;
@@ -238,26 +255,145 @@ packet AN_protocol_execute(packet* p)
 
 }
 
-#define MAX_CLIENT_QUEUE 20
 
-int main(int argc, char** argv)
+
+
+int main()
 {
-	printf("[director] socketname = %s\n", argv[1]);
-	char* socketname = argv[1];
-	AN_protocol_setup();
+	struct epoll_event ev, events[MAX_EVENTS];
+	int epollfd, nfds, client_sock;
+	serve_data *newdata;
+	SSI* server = ssi_open(NULL, TCP_PORT, true, TCP_BACKLOG);
+	//epoll file descriptor.
+	errorcheck(epollfd = epoll_create1(0), -1, "failed @ epoll_create1()"); // you can add cloexec to close on execve
 	
-	SSI* s = ssi_un_open(socketname, true, MAX_CLIENT_QUEUE);
-	packet p, response;
-	int client;
+	//Add the server listening socket to epoll
+	ev.events = EPOLLIN; //read operations.
+	ev.data.fd = server->ssi_fd;
+	errorcheck(epoll_ctl(epollfd, EPOLL_CTL_ADD, server->ssi_fd, &ev), -1, "failed to add server socket to epoll");
+	AN_protocol_setup();
+
 	while(1)
 	{
-		client = ssi_un_server_accept(s);
-		//read the packet.
-		insist_read(client, &p, sizeof(p));
-		//execute command based on packet.
-		response = AN_protocol_execute(&p);
-		insist_write(client, &response, sizeof(response));
-		close(client);
+		nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1); //-1 timeout block indefinitely.
+		errorcheck(nfds, -1, "failed @epoll_wait inside event loop");
+
+		//cycle through ready fds.
+		for(int i = 0; i < nfds; i++)
+		{
+			if(events[i].data.fd == server->ssi_fd)
+			{
+				//handle new connection.
+				client_sock = ssi_server_accept(server);
+				if(set_non_blocking(client_sock) < 0){
+					fprintf(stderr, "failed to set_non_block\n");
+					close(client_sock);
+					continue;
+				};
+				ev.events = EPOLLIN | EPOLLET; //set the client for read and make it edge triggered.
+				//this means that non consumed data will not trigger epoll_wait to return.
+				
+				//allocate the new data for each fd.
+				newdata = sfmalloc(sizeof(serve_data));
+				memset(newdata, 0, sizeof(serve_data));
+				newdata->fd = client_sock;
+				newdata->offset = 0;   //it is already zero it is here for sanity check.
+
+				ev.data.ptr = newdata;
+				//Put client in the set of clients we are handling.
+				if(epoll_ctl(epollfd, EPOLL_CTL_ADD, client_sock, &ev) < 0){
+					fprintf(stderr, "failed to add a client to epoll struct\n");
+					close(client_sock);
+					continue;
+				}
+			}
+			else{
+				if(handle_connection(events[i].data.ptr) == -1){
+					//remove him from the epoll list.
+					int closingfd = ((serve_data *)events[i].data.ptr)->fd;
+					serve_data* data = events[i].data.ptr;
+					errorcheck(epoll_ctl(epollfd, EPOLL_CTL_DEL, closingfd, &ev), -1,
+					 "failed to remove finished @ connection for epoll");
+					close(closingfd);
+					free(data);
+					fprintf(stderr, "closed one!!\n");
+
+					
+				};
+			}
+		}
+
+
+
 	}
+	return 0;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int set_non_blocking(int sockfd)
+{
+	int flags, s;
+	//get previous state
+	flags = fcntl(sockfd, F_GETFL, 0);
+	errorcheck(flags, -1, "fnctl getfl failed");
+	//set new state with nonblock on
+	flags |= O_NONBLOCK;
+	s = fcntl(sockfd, F_SETFL, flags);
+	errorcheck(s, -1, "fnctl setfl failed");
+	return 0;
+}
+
+
+int handle_connection(serve_data* req)
+{
+	int fd = req->fd;
+	packet response;
+	int nread = read(fd, ((unsigned char* )&(req->input)) + req->offset, sizeof(req->input) - req->offset);
+	//non_blocking and if it would block a flag is returned.
+	if(nread == -1 && errno == EWOULDBLOCK){
+		return 1;
+	}if(nread == 0){
+		return -1;
+	}
+	//renew what percentage of a full packet we have read.
+	req->offset += nread;
+	if(req->offset == sizeof(req->input))
+	{
+		fprintf(stderr, "full packet of size %ld", req->offset);
+		//decrypt before executing.
+		packet result;
+		decryption(&req->input ,&result, sizeof(result));
+		response = AN_protocol_execute(&result);
+		//encrypt before sending response
+		encryption(&response, &result, sizeof(result));
+		memcpy(&response, &result, sizeof(result));
+		insist_write(fd, &response, sizeof(response));
+		return -1;
+	}
+
+	// write(fd, buf, nread);
+	return 1;
+}

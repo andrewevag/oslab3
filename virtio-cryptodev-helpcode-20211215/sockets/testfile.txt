@@ -1,1 +1,0 @@
-a CU pass |  a C ch1 |  n CU pass |  a A pass ch1 n |  a S pass ch1 =geiaaaa |  a S pass ch1 =hello |  n R pass ch1 0 |
