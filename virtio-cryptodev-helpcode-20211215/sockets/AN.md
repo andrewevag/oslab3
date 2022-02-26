@@ -1,7 +1,7 @@
 # `oslab3`
 ## `Περιεχόμενα`
 1. [Sockets](#1.-Sockets)
-	1. [Socket Handling](#1.1-socket-handling)
+	1. [Socket Handling](#socket-handling)
 	1. [Πρωτόκολλο-Επικοινωνίας](#1.2-AN-protocol-2.0)
 	1. [Ο server](#1.3-O-Server)
 	1. [O client](#1.4-O-Client)
