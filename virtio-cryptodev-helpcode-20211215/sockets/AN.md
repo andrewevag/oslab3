@@ -4,9 +4,9 @@
 ## `Περιεχόμενα`
 1. [Sockets](#1-Sockets)
 	1. [Socket Handling](#11-socket-handling)
-	1. [Πρωτόκολλο-Επικοινωνίας](#12-AN-protocol-20)
-	1. [Ο server](#13-O-Server)
-	1. [O client](#14-O-Client)
+	1. [Πρωτόκολλο Επικοινωνίας](#12-Πρωτόκολλο-Επικοινωνίας)
+	1. [O Server](#13-O-Server)
+	1. [O Client](#14-O-Client)
 1. [Κρυπτογράφηση μηνυμάτων](#2-Κρυπτογράφηση-μηνυμάτων)
 	1. [Η κρυπτογράφηση στους server και client](#21-Η-κρυπτογράφηση-στους-server-και-client)
 	1. [Επιβεβαίωση κρυπτογραφημένων μηνυμάτων](#22-Επιβεβαίωση-κρυπτογραφημένων-μηνυμάτων)
@@ -14,10 +14,10 @@
 	1. [Δομές Δεδομένων Driver](#31-Δομές-Δεδομένων-Driver)
 	1. [Κατα την εισαγωγή του module](#32-Κατα-την-εισαγωγή-του-module)
 	1. [Πρωτόκολλο μεταφοράς δεδομένων](#33-Πρωτόκολλο-μεταφοράς-δεδομένων)
-	1. [Περιγραφή συμπεριφοράς system calls στον frontend Driver του VM](#34-Περιγραφή-συμπεριφοράς-system-calls-στον-frontend-Driver-του-VM)
+	1. [Περιγραφή συμπεριφοράς system calls στον frontend Driver του VM](#34-Περιγραφή-συμπεριφοράς-system-calls-στον-frontend-Driver)
 1. [Backend Driver](#4-Backend-Driver)
 	1. [Περιγραφή λειτουργίας του backend driver](#41-Περιγραφή-λειτουργίας-του-backend-driver)
-1. [Μέρος του socket source code του οποίου η συμπεριφορά δεν περιγράφηκε στα προηγούμενα](#5-Socket-Source-Code) 
+1. [Μέρος του socket source code του οποίου η συμπεριφορά δεν περιγράφηκε στα προηγούμενα](#5-Μέρος-του-socket-source-code-του-οποίου-η-συμπεριφορά-δεν-περιγράφηκε-στα-προηγούμενα) 
 
 # `1. Sockets`
 ### `1.1 Socket Handling`
@@ -80,7 +80,7 @@ SSI* ssi_un_open(char* socketname, bool server, int client_queue);
  */
 int ssi_un_server_accept(SSI* ssip);
 ```
-### `1.2 AN Protocol 2.0`
+### `1.2 Πρωτόκολλο Επικοινωνίας`
 
 Stateless προσέγγιση που απλά ανανεώνει την δυναμική <<βάση δεδομένων>> που υπάρχει στον [epollserver.c](#epollserverc). 
 
@@ -274,7 +274,7 @@ struct crypto_driver_data
 Χρησιμοποιείται το προτεινόμενο πρωτόκολλο :
 ![virtQueue-protocol.png](virtQueue-protocol.png)
 μόνο που στις περιπτώσεις των buffer οι pointer από structs που μεταβιβάζονται διορθώνονται στην πλευρά του QEMU.
-### `3.4 Περιγραφή συμπεριφοράς system calls στον frontend Driver του VM`
+### `3.4 Περιγραφή συμπεριφοράς system calls στον frontend Driver`
 
 - Ανοίγει userspace process του VM κάποιο /dev/cryptodevX το οποίο διαχειρίζεται ο frontend driver.
 - Ο frontend driver βρίσκει σε ποια εικονική συσκευή virtio αντιστοιχεί το /dev/cryptodevX (inode) για να βρει με ποια vq θα μιλήσει στον QEMU.
@@ -370,7 +370,7 @@ struct crypto_driver_data
 		}
 
 	```
-# `5. Socket Source Code`
+# `5. Μέρος του socket source code του οποίου η συμπεριφορά δεν περιγράφηκε στα προηγούμενα`
 ## `SSI.c`
 ```C
 #include "SSI.h"
