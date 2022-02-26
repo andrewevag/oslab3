@@ -16,7 +16,8 @@ typedef struct{
 	char ssi_name_server[SSI_NAME_SIZE];
 } SSI;
 
-/*
+/**
+ * @brief
  * Opens a socket and either listens as a server or connects to as a client.
  * @param name the address of the server (Should be NULL for server);
  * @param port the port to listen or to connect to.
@@ -43,7 +44,21 @@ int ssi_server_accept(SSI* ssip);
  */
 bool ssi_close(SSI* ssip);
 
+/**
+ * @brief Interface for handling unix sockets
+ * 
+ * @param socketname name of the socket
+ * @param server server or client boolean
+ * @param client_queue backlog
+ * @return SSI* the handle for future calls
+ */
 SSI* ssi_un_open(char* socketname, bool server, int client_queue);
+/**
+ * @brief Accepting clients for unix sockets opened using the SSI.
+ * 
+ * @param ssip the SSI handle
+ * @return int the fd of the client -1 in case of error
+ */
 int ssi_un_server_accept(SSI* ssip);
 
 #endif
