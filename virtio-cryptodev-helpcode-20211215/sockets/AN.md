@@ -20,7 +20,7 @@
 # `1. Sockets`
 ### `1.1 Socket Handling`
 Τα sockets χειρίζονται από ένα Simple Socket Interface ***SSI*** 
-*(definitions από MARC J.ROCHKIND "Programming in UNIX" Simple Socket Interface αλλά **υλοποιημένο ανεξάρτητα από εμάς** [SSI.c](SSI.c))*
+*(definitions από MARC J.ROCHKIND "Programming in UNIX" Simple Socket Interface αλλά **υλοποιημένο ανεξάρτητα από εμάς** [SSI.c](#SSI.c))*
 
 O handle για την χρήση του interface 
 ```C
@@ -31,7 +31,7 @@ typedef struct{
 	char ssi_name_server[SSI_NAME_SIZE];
 } SSI;
 ```
-Οι συναρτήσεις που χρησιμοποιούνται στις υλοποιήσεις των [epollserver.c](epollserver.c) και [client.c](client.c)
+Οι συναρτήσεις που χρησιμοποιούνται στις υλοποιήσεις των [epollserver.c](#epollserver.c) και [client.c](#client.c)
 ``` C
 /**
  * @brief
@@ -80,7 +80,7 @@ int ssi_un_server_accept(SSI* ssip);
 ```
 ### `1.2 AN Protocol 2.0`
 
-Stateless προσέγγιση που απλά ανανεώνει την δυναμική <<βάση δεδομένων>> που υπάρχει στον [epollserver.c](epollserver.c). 
+Stateless προσέγγιση που απλά ανανεώνει την δυναμική <<βάση δεδομένων>> που υπάρχει στον [epollserver.c](#epollserver.c). 
 
 Ένα struct μεταφέρεται μεταξύ client και server που περιέχει κάθε δυνατή ερώτηση του client και απάντηση του server.
 
@@ -164,7 +164,7 @@ O server χρησιμοποιεί την κλήση συστήματος epoll (
 ### `2.1 Η κρυπτογράφηση στους server και client`
 Και στον server και στον client χρησιμοποιείται το **/dev/crypto** για την κρυπτογράφηση και αποκρυπτογράφηση των δεδομένων. 
 
-Χρησιμοποιούνται οι κλήσεις (οι υλοποιήσεις των οποίων βρίσκονται στο [encrypt.c](encrypt.c) και [decrypt.c](decrypt.c)) :
+Χρησιμοποιούνται οι κλήσεις (οι υλοποιήσεις των οποίων βρίσκονται στο [encrypt.c](#encrypt.c) και [decrypt.c](#decrypt.c)) :
 ``` C
 /**
  * @brief encrypts data using AES Algorithm
