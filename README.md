@@ -25,6 +25,8 @@
 	- [encrypt.c](#encryptc)
 	- [decrypt.c](#decryptc)
 
+<div style="page-break-after: always;"></div>
+
 # `1. Sockets`
 ### `1.1 Socket Handling`
 Τα sockets χειρίζονται από ένα Simple Socket Interface ***SSI*** 
@@ -115,6 +117,8 @@ struct {
 	char body[260];     // 260 bytes
 } packet;
 ```
+<div style="page-break-after: always;"></div>
+
 Τα Question αφορούν ερωτήσεις από τον client προς τον server και αυτές μπορεί να είναι CREATE_USER, CREATE_CHANNEL, ADD_USER, SEND, READ οι οποίες έχουν λειτουργίες :
 | Commmand	  | Description |
 | ----------- | ----------- |
@@ -124,6 +128,8 @@ struct {
 | SEND | Στέλνεται μήνυμα σε ένα κανάλι (arg3) (validation required (arg1, arg2)) (Msg in Body) |
 | READ | Ζητείται αποστολή του id-οστού μηνύματος από το κανάλι στον client (validation required (arg1, arg2))|
 
+<br/>
+
 Απαντήσεις server :
 | Command      | Description |
 | ----------- | ----------- |
@@ -131,8 +137,8 @@ struct {
 | SERVER_FAILURE   | Αποτυχία επεξεργασίας ερωτήματος (log msg in body)        |
 
 
+<div style="page-break-after: always;"></div>
 
----
 ### `1.3 O Server` 
 <!-- ## αποτελείται από τρία μέρη :
 ### - fatherServer :
@@ -167,6 +173,8 @@ O server χρησιμοποιεί την κλήση συστήματος epoll (
 
 ### `1.4 O Client`
 Ξεκινά σύνδεση με κάποιον server η διεύθυνση του οποίου καθορίζεται από τα <i>command lines args</i> για κάθε πακέτο που πρόκειται να στείλει. Δέχεται commands από τον χρήστη και τις μεταφράζει άμεσα σε δομή <i>packet</i> την οποία αποστέλλει προς τον server, κρυπτογραφώντας την.
+
+<div style="page-break-after: always;"></div>
 
 # `2. Κρυπτογράφηση μηνυμάτων`
 ### `2.1 Η κρυπτογράφηση στους server και client`
@@ -223,7 +231,7 @@ ssize_t decrypt_insist_read(int fd, void *buf, size_t cnt);
 tcpdump -i lo -vvv -XXX port <serverport>
 ```
 
-
+<div style="page-break-after: always;"></div>
 
 # `3. Frontend Driver`
 ### `3.1 Δομές Δεδομένων Driver`
@@ -256,6 +264,9 @@ struct crypto_driver_data
 	unsigned int minor;
 };
 ```
+
+<div style="page-break-after: always;"></div>
+
 - Αναπαράσταση από την πλευρά του driver ενός ανοιχτού fd
 ```C
 	struct crypto_open_file {
@@ -276,6 +287,9 @@ struct crypto_driver_data
 ```C 
 	static int virtcons_probe(struct virtio_device *vdev);
 ```
+
+<div style="page-break-after: always;"></div>
+
 ### `3.3 Πρωτόκολλο μεταφοράς δεδομένων`
 Χρησιμοποιείται το προτεινόμενο πρωτόκολλο :
 ![virtQueue-protocol.png](virtQueue-protocol.png)
@@ -324,9 +338,9 @@ struct crypto_driver_data
 		// read returned data
 		...
 		up(&(crdev->sem));
-
 	```
 
+<div style="page-break-after: always;"></div>
 
 # `4. Backend Driver`
 ### `4.1 Περιγραφή λειτουργίας του backend driver`
@@ -374,8 +388,10 @@ struct crypto_driver_data
 				}
 		break;
 		}
-
 	```
+
+<div style="page-break-after: always;"></div>
+
 # `5. Μέρος του socket source code του οποίου η συμπεριφορά δεν περιγράφηκε στα προηγούμενα`
 ## `SSI.c`
 ```C
