@@ -102,7 +102,9 @@ exit:
 	return 0;
 }
 
-
+/*
+ * Reads the response from the server
+ */
 int read_response()
 {
 	packet p, q;
@@ -121,6 +123,10 @@ int read_response()
 	return 0;
 }
 
+/*
+ * Gets user credentials and log user in or creates new user
+ * if credentials do not belong to an existing user
+ */
 void handle_login()
 {
 	memset(username, 0, sizeof(username));
@@ -134,6 +140,9 @@ void handle_login()
 	read_response();
 }
 
+/*
+ * Creates a new channel
+ */
 void handle_create()
 {
 	memset(input, 0, sizeof(input));
@@ -145,6 +154,9 @@ void handle_create()
 
 }
 
+/*
+ * Prints help message
+ */
 void handle_help(){
 	printf("Available Commands Are :\n"Blue"create\t"RESET_COLOR"to create newchannel\n");
 	printf(Blue"follow\t"RESET_COLOR"read contents of a channel\n");
@@ -153,7 +165,9 @@ void handle_help(){
 	printf(Blue"exit\t"RESET_COLOR"terminate connection\n");
 	
 }
-
+/*
+ * Sends a message to a specific channel
+ */
 void handle_send()
 {
 	memset(input, 0, sizeof(input));
@@ -174,7 +188,9 @@ void handle_send()
 	memset(input, 0, sizeof(input));
 }
 
-
+/*
+ * Reads all messages from a channel
+ */
 void handle_follow()
 {
 	memset(input, 0, sizeof(input));
@@ -195,7 +211,10 @@ void handle_follow()
 
 }
 
-
+/*
+ * Adds a user (not the logged in one) to an existing channel
+ * gives permission to him for that channel
+ */
 void handle_add()
 {
 	memset(input, 0, sizeof(input));

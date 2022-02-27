@@ -2,27 +2,33 @@
 - Παναγιώτα-Νικολέττα Μπάρμπα el18604
 - Ανδρέας Ευαγγελάτος el18069
 ## `Περιεχόμενα`
-1. [Sockets](#1-Sockets)
-	1. [Socket Handling](#11-socket-handling)
-	1. [Πρωτόκολλο Επικοινωνίας](#12-Πρωτόκολλο-Επικοινωνίας)
-	1. [O Server](#13-O-Server)
-	1. [O Client](#14-O-Client)
-1. [Κρυπτογράφηση μηνυμάτων](#2-Κρυπτογράφηση-μηνυμάτων)
-	1. [Η κρυπτογράφηση στους server και client](#21-Η-κρυπτογράφηση-στους-server-και-client)
-	1. [Επιβεβαίωση κρυπτογραφημένων μηνυμάτων](#22-Επιβεβαίωση-κρυπτογραφημένων-μηνυμάτων)
-1. [Frontend Driver](#3-Frontend-Driver)
-	1. [Δομές Δεδομένων Driver](#31-Δομές-Δεδομένων-Driver)
-	1. [Κατα την εισαγωγή του module](#32-Κατα-την-εισαγωγή-του-module)
-	1. [Πρωτόκολλο μεταφοράς δεδομένων](#33-Πρωτόκολλο-μεταφοράς-δεδομένων)
-	1. [Περιγραφή συμπεριφοράς system calls στον frontend Driver του VM](#34-Περιγραφή-συμπεριφοράς-system-calls-στον-frontend-Driver)
-1. [Backend Driver](#4-Backend-Driver)
-	1. [Περιγραφή λειτουργίας του backend driver](#41-Περιγραφή-λειτουργίας-του-backend-driver)
-1. [Μέρος του socket source code του οποίου η συμπεριφορά δεν περιγράφηκε στα προηγούμενα](#5-Μέρος-του-socket-source-code-του-οποίου-η-συμπεριφορά-δεν-περιγράφηκε-στα-προηγούμενα) 
+1. [`Sockets`](#1-sockets)
+	1. [`Socket Handling`](#11-socket-handling)
+	1. [`Πρωτόκολλο Επικοινωνίας`](#12-πρωτόκολλο-επικοινωνίας)
+	1. [`O Server`](#13-o-server)
+	1. [`O Client`](#14-o-client)
+1. [`Κρυπτογράφηση μηνυμάτων`](#2-κρυπτογράφηση-μηνυμάτων)
+	1. [`Η κρυπτογράφηση στους server και client`](#21-η-κρυπτογράφηση-στους-server-και-client)
+	1. [`Επιβεβαίωση κρυπτογραφημένων μηνυμάτων`](#22-επιβεβαίωση-κρυπτογραφημένων-μηνυμάτων)
+1. [`Frontend Driver`](#3-frontend-driver)
+	1. [`Δομές Δεδομένων Driver`](#31-δομές-δεδομένων-driver)
+	1. [`Κατα την εισαγωγή του module`](#32-κατα-την-εισαγωγή-του-module)
+	1. [`Πρωτόκολλο μεταφοράς δεδομένων`](#33-πρωτόκολλο-μεταφοράς-δεδομένων)
+	1. [`Περιγραφή συμπεριφοράς system calls στον frontend Driver`](#34-περιγραφή-συμπεριφοράς-system-calls-στον-frontend-driver)
+1. [`Backend Driver`](#4-backend-driver)
+	1. [`Περιγραφή λειτουργίας του backend driver`](#41-περιγραφή-λειτουργίας-του-backend-driver)
+1. [`Μέρος του socket source code του οποίου η συμπεριφορά δεν περιγράφηκε στα προηγούμενα`](#5-μέρος-του-socket-source-code-του-οποίου-η-συμπεριφορά-δεν-περιγράφηκε-στα-προηγούμενα)
+	- [`SSI.c`](#ssic)
+	- [`part of packet.h and packet.c`](#part-of-packeth-and-packetc)
+	- [`epollserver.c`](#epollserverc)
+	- [`client.c`](#clientc)
+	- [`encrypt.c`](#encryptc)
+	- [`decrypt.c`](#decryptc)
 
 # `1. Sockets`
 ### `1.1 Socket Handling`
 Τα sockets χειρίζονται από ένα Simple Socket Interface ***SSI*** 
-*(definitions από MARC J.ROCHKIND "Programming in UNIX" Simple Socket Interface αλλά **υλοποιημένο ανεξάρτητα από εμάς** [SSI.c](#SSIc))*
+*(definitions από MARC J.ROCHKIND "Programming in UNIX" Simple Socket Interface αλλά **υλοποιημένο ανεξάρτητα από εμάς** [SSI.c](#ssic))*
 
 O handle για την χρήση του interface 
 ```C
@@ -220,7 +226,7 @@ tcpdump -i lo -vvv -XXX port <serverport>
 
 
 # `3. Frontend Driver`
-### `3.1 Δομές Δεδομένων Driver` :
+### `3.1 Δομές Δεδομένων Driver`
 - Μία λίστα με όλες τις συνδεδεμένες συσκευές (τύπου virtio cryptodev)
 ``` C
 struct crypto_driver_data 
@@ -261,7 +267,7 @@ struct crypto_driver_data
 
 ```
 
-### `3.2 Κατα την εισαγωγή του module` : 
+### `3.2 Κατα την εισαγωγή του module`
 - Κάνουμε register τον driver να κάνει handle virtio_devices με συγκεκριμένα χαρακτηριστικά (id). Αυτό γίνεται με την κλήση :
 ```C
 	register_virtio_driver(&virtio_crypto);
@@ -639,30 +645,37 @@ char* body)
 
 
 #define MAX_EVENTS 1024
-//i want to specify a data type to hold for each handler at any given point
+//The private data passed around from epoll
 typedef struct {
 	packet input;  // the input packet
 	size_t offset; // how much of the packet is read.
 	int fd;		   // the file descriptor that associates the received packet and client.
 } serve_data;
 
-
+//used for epoll calls the file descriptors need to be non blocking
 int set_non_blocking(int sockfd);
+
+//the function that is called when new data is read from epoll.
 int handle_connection(serve_data* req);
 
-
+//global user list
 list* userlist;
+//global channel setup
 list* channellist;
+
+//initialization of global data structures
 void AN_protocol_setup()
 {
 	userlist = emptyList;
 	channellist = emptyList;
 }
 
-
+/*
+ * Check User credentials
+ */
 bool validateUser(char* usrname, char* pwd)
 {
-	printf("@validate with %s and %s\n", usrname, pwd);
+	fprintf(stderr, "@validate with %s and %s\n", usrname, pwd);
 	forEachList(userlist, i)
 	{
 		user* curruser = getData(i);
@@ -673,7 +686,9 @@ bool validateUser(char* usrname, char* pwd)
 	}
 	return false;
 }
-
+/*
+ * Check if a channel exists and is valid
+ */
 channel* checkChannelExistance(char *name)
 {
 	channel* req = NULL;
@@ -686,6 +701,9 @@ channel* checkChannelExistance(char *name)
 	return req;
 }
 
+/*
+ * Check if user has access to a specific channel
+ */
 bool checkAccessToChannel(channel* req, char* usrname)
 {
 	bool flag = false;
@@ -697,7 +715,9 @@ bool checkAccessToChannel(channel* req, char* usrname)
 	}
 	return flag;
 }
-
+/*
+ *	Check if a certain user exists
+ */
 bool checkUserExistance(char* usrname)
 {	
 	user* u;
@@ -710,13 +730,9 @@ bool checkUserExistance(char* usrname)
 	return false;
 }
 
-#define USERNAME 0
-#define COMMAND 1
-#define ARGUMENT 2
-#define EXTRAUSERNAME 4
-#define CHANNELPARAM 3
-#define PASSWORD 2
-#define MSGNUM 4
+/*
+ * The backend login of the server
+ */
 packet AN_protocol_execute(packet* p)
 {
 	char buf[BUFSIZ];
@@ -728,7 +744,7 @@ packet AN_protocol_execute(packet* p)
 			return packetServerS("User already exists");
 		}
 		userlist = cons(user_constructor(p->arg1, p->arg2), userlist);
-		printf("[director] Created user with username : %s, password : %s\n", ((user*)head(userlist))->username, ((user*)head(userlist))->password);
+		printf("Created user with username : %s, password : %s\n", ((user*)head(userlist))->username, ((user*)head(userlist))->password);
 		printf("list length %d\n", listlength(userlist));
 		return packetServerS("User created sucessfully.");
 	}
@@ -738,51 +754,51 @@ packet AN_protocol_execute(packet* p)
 		{
 			if(strcmp(p->arg3,((channel*)getData(ch))->name) == 0)
 			{
-				printf("[director] channel already exists\n");
+				printf("channel already exists\n");
 				return packetServerF("Channel already exists.");
 			}
 		}
 
 		channellist = cons(channel_costructor(p->arg3, cons(user_constructor(p->arg1, "") ,emptyList), emptyList), channellist);
-		printf("[director] Created channel with channelname : %s username : %s, password %s\n", ((channel*)head(channellist))->name, ((user*)head(((channel*)head(channellist))->userlist))->username, ((user*)head(((channel*)head(channellist))->userlist))->password);
-		printf("[director] Channellist length %d\n", listlength(channellist));
+		printf("Created channel with channelname : %s username : %s, password %s\n", ((channel*)head(channellist))->name, ((user*)head(((channel*)head(channellist))->userlist))->username, ((user*)head(((channel*)head(channellist))->userlist))->password);
+		printf("Channellist length %d\n", listlength(channellist));
 		sprintf(buf, "Created channel %s", p->arg3);
 		return packetServerS(buf);
 		
 	}
 	else if(p->command == ADD_USER)
 	{
-		// //user 
-		// //add channel user |
+		//user 
+		//add channel user 
 		//validate user. 
 		if(!validateUser(p->arg1, p->arg2))
 		{
-			printf("[director] failed to validate user\n");
+			printf("failed to validate user\n");
 			return packetServerS("Failed to validate user");
 		}
 		//check that the channel exists.
 		
 		channel* req = checkChannelExistance(p->arg3);
 		if(req == NULL){			
-			printf("[director] channel not found requested = %s\n", p->arg3);
+			printf("channel not found requested = %s\n", p->arg3);
 			return packetServerF("Channel requested not found");
 		}
 		if(!checkUserExistance(p->arg4))
 		{
 			
-			printf("[director] no such user exists %s\n", p->arg4);
+			printf("no such user exists %s\n", p->arg4);
 			return packetServerF("No such user exists");
 		}
 
 		//check that he has access to the channel.
 		bool flag = checkAccessToChannel(req, p->arg1);
 		if(!flag){
-			printf("[director] user %s does not have access to %s\n", p->arg1, req->name);
+			printf("user %s does not have access to %s\n", p->arg1, req->name);
 			return packetServerF("Access denied for that channel");
 		}
 		//add user to the channel.
 		req->userlist = cons(user_constructor(p->arg4, ""), req->userlist);
-		printf("[director] added user %s to %s\n", p->arg4, req->name);
+		printf("added user %s to %s\n", p->arg4, req->name);
 		sprintf(buf, "added user %s to %s\n", p->arg4, req->name);
 		return packetServerS(buf);
 	}
@@ -792,28 +808,28 @@ packet AN_protocol_execute(packet* p)
 		//validateUser
 		if(!validateUser(p->arg1, p->arg2))
 		{
-			printf("[director] failed to validate user\n");
+			printf("failed to validate user\n");
 			return packetServerS("Failed to validate user");
 		}
 		//checkChannelExistance
 		channel* req = checkChannelExistance(p->arg3);
 		if(req == NULL)
 		{			
-			printf("[director] channel not found requested = %s\n", p->arg3);
+			printf("channel not found requested = %s\n", p->arg3);
 			return packetServerF("Channel requested not found");
 
 		}
 		//check user access to the channel.
 		if(!checkAccessToChannel(req, p->arg1))
 		{			
-			printf("[director] user %s does not have access to %s\n", p->arg1, req->name);
+			printf("user %s does not have access to %s\n", p->arg1, req->name);
 			return packetServerF("Access denied for that channel");
 		}
 		// memcpy(buf, p->body, p->length);
 		snprintf(buf,5+strlen(p->arg1)+p->length ,"[%s]\t %s", p->arg1, p->body);
 		int previousId = (req->messagelist == emptyList) ? -1 : (((message*)head(req->messagelist))->id);
 		req->messagelist = cons( message_constructor(++previousId, buf , user_constructor(p->arg1, "")) , req->messagelist);
-		printf("[director] msg = %s to %s\n", (((message*)(head(req->messagelist)))->text), req->name);
+		printf("msg = %s to %s\n", (((message*)(head(req->messagelist)))->text), req->name);
 		return packetServerS("Sent packet successfully");
 
 	}
@@ -823,25 +839,23 @@ packet AN_protocol_execute(packet* p)
 		//validateUser
 		if(!validateUser(p->arg1, p->arg2))
 		{
-			printf("[director] failed to validate user\n");
+			printf("failed to validate user\n");
 			return packetServerS("Failed to validate user");
 		}
 		//checkChannelExistance
 		channel* req = checkChannelExistance(p->arg3);
 		if(req == NULL)
 		{			
-			printf("[director] channel not found requested = %s\n", p->arg3);
+			printf("channel not found requested = %s\n", p->arg3);
 			return packetServerF("Channel requested not found");
 
 		}
 		//check user access to the channel.
 		if(!checkAccessToChannel(req, p->arg1))
 		{			
-			printf("[director] user %s does not have access to %s\n", p->arg1, req->name);
+			printf("user %s does not have access to %s\n", p->arg1, req->name);
 			return packetServerF("Access denied for that channel");
 		}
-		//no we have to give all the messages that are greater or equal to the requested one.
-		//might fix to recursion in another lifetime
 		int maxid = ((message*)head(req->messagelist))->id;
 		int id = p->id;
 		forEachList(req->messagelist, i)
@@ -858,7 +872,7 @@ packet AN_protocol_execute(packet* p)
 	}
 	else
 	{
-		printf("[director] failed command\n");
+		printf("failed command\n");
 		return packetServerF("Failed Question");
 	}
 
@@ -1091,7 +1105,9 @@ exit:
 	return 0;
 }
 
-
+/*
+ * Reads the response from the server
+ */
 int read_response()
 {
 	packet p, q;
@@ -1110,6 +1126,10 @@ int read_response()
 	return 0;
 }
 
+/*
+ * Gets user credentials and log user in or creates new user
+ * if credentials do not belong to an existing user
+ */
 void handle_login()
 {
 	memset(username, 0, sizeof(username));
@@ -1123,6 +1143,9 @@ void handle_login()
 	read_response();
 }
 
+/*
+ * Creates a new channel
+ */
 void handle_create()
 {
 	memset(input, 0, sizeof(input));
@@ -1134,6 +1157,9 @@ void handle_create()
 
 }
 
+/*
+ * Prints help message
+ */
 void handle_help(){
 	printf("Available Commands Are :\n"Blue"create\t"RESET_COLOR"to create newchannel\n");
 	printf(Blue"follow\t"RESET_COLOR"read contents of a channel\n");
@@ -1142,7 +1168,9 @@ void handle_help(){
 	printf(Blue"exit\t"RESET_COLOR"terminate connection\n");
 	
 }
-
+/*
+ * Sends a message to a specific channel
+ */
 void handle_send()
 {
 	memset(input, 0, sizeof(input));
@@ -1163,7 +1191,9 @@ void handle_send()
 	memset(input, 0, sizeof(input));
 }
 
-
+/*
+ * Reads all messages from a channel
+ */
 void handle_follow()
 {
 	memset(input, 0, sizeof(input));
@@ -1181,10 +1211,12 @@ void handle_follow()
 		maxid = read_response();
 		p.id++;id++;
 	}
-
 }
 
-
+/*
+ * Adds a user (not the logged in one) to an existing channel
+ * gives permission to him for that channel
+ */
 void handle_add()
 {
 	memset(input, 0, sizeof(input));
@@ -1201,8 +1233,6 @@ void handle_add()
 	read_response();
 
 }
-
-
 ```
 ## `encrypt.c`
 ```C

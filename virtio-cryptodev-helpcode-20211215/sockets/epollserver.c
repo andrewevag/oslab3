@@ -30,30 +30,37 @@
 
 
 #define MAX_EVENTS 1024
-//i want to specify a data type to hold for each handler at any given point
+//The private data passed around from epoll
 typedef struct {
 	packet input;  // the input packet
 	size_t offset; // how much of the packet is read.
 	int fd;		   // the file descriptor that associates the received packet and client.
 } serve_data;
 
-
+//used for epoll calls the file descriptors need to be non blocking
 int set_non_blocking(int sockfd);
+
+//the function that is called when new data is read from epoll.
 int handle_connection(serve_data* req);
 
-
+//global user list
 list* userlist;
+//global channel setup
 list* channellist;
+
+//initialization of global data structures
 void AN_protocol_setup()
 {
 	userlist = emptyList;
 	channellist = emptyList;
 }
 
-
+/*
+ * Check User credentials
+ */
 bool validateUser(char* usrname, char* pwd)
 {
-	printf("@validate with %s and %s\n", usrname, pwd);
+	fprintf(stderr, "@validate with %s and %s\n", usrname, pwd);
 	forEachList(userlist, i)
 	{
 		user* curruser = getData(i);
@@ -64,7 +71,9 @@ bool validateUser(char* usrname, char* pwd)
 	}
 	return false;
 }
-
+/*
+ * Check if a channel exists and is valid
+ */
 channel* checkChannelExistance(char *name)
 {
 	channel* req = NULL;
@@ -77,6 +86,9 @@ channel* checkChannelExistance(char *name)
 	return req;
 }
 
+/*
+ * Check if user has access to a specific channel
+ */
 bool checkAccessToChannel(channel* req, char* usrname)
 {
 	bool flag = false;
@@ -88,7 +100,9 @@ bool checkAccessToChannel(channel* req, char* usrname)
 	}
 	return flag;
 }
-
+/*
+ *	Check if a certain user exists
+ */
 bool checkUserExistance(char* usrname)
 {	
 	user* u;
@@ -101,13 +115,9 @@ bool checkUserExistance(char* usrname)
 	return false;
 }
 
-#define USERNAME 0
-#define COMMAND 1
-#define ARGUMENT 2
-#define EXTRAUSERNAME 4
-#define CHANNELPARAM 3
-#define PASSWORD 2
-#define MSGNUM 4
+/*
+ * The backend login of the server
+ */
 packet AN_protocol_execute(packet* p)
 {
 	char buf[BUFSIZ];
@@ -119,7 +129,7 @@ packet AN_protocol_execute(packet* p)
 			return packetServerS("User already exists");
 		}
 		userlist = cons(user_constructor(p->arg1, p->arg2), userlist);
-		printf("[director] Created user with username : %s, password : %s\n", ((user*)head(userlist))->username, ((user*)head(userlist))->password);
+		printf("Created user with username : %s, password : %s\n", ((user*)head(userlist))->username, ((user*)head(userlist))->password);
 		printf("list length %d\n", listlength(userlist));
 		return packetServerS("User created sucessfully.");
 	}
@@ -129,51 +139,51 @@ packet AN_protocol_execute(packet* p)
 		{
 			if(strcmp(p->arg3,((channel*)getData(ch))->name) == 0)
 			{
-				printf("[director] channel already exists\n");
+				printf("channel already exists\n");
 				return packetServerF("Channel already exists.");
 			}
 		}
 
 		channellist = cons(channel_costructor(p->arg3, cons(user_constructor(p->arg1, "") ,emptyList), emptyList), channellist);
-		printf("[director] Created channel with channelname : %s username : %s, password %s\n", ((channel*)head(channellist))->name, ((user*)head(((channel*)head(channellist))->userlist))->username, ((user*)head(((channel*)head(channellist))->userlist))->password);
-		printf("[director] Channellist length %d\n", listlength(channellist));
+		printf("Created channel with channelname : %s username : %s, password %s\n", ((channel*)head(channellist))->name, ((user*)head(((channel*)head(channellist))->userlist))->username, ((user*)head(((channel*)head(channellist))->userlist))->password);
+		printf("Channellist length %d\n", listlength(channellist));
 		sprintf(buf, "Created channel %s", p->arg3);
 		return packetServerS(buf);
 		
 	}
 	else if(p->command == ADD_USER)
 	{
-		// //user 
-		// //add channel user |
+		//user 
+		//add channel user 
 		//validate user. 
 		if(!validateUser(p->arg1, p->arg2))
 		{
-			printf("[director] failed to validate user\n");
+			printf("failed to validate user\n");
 			return packetServerS("Failed to validate user");
 		}
 		//check that the channel exists.
 		
 		channel* req = checkChannelExistance(p->arg3);
 		if(req == NULL){			
-			printf("[director] channel not found requested = %s\n", p->arg3);
+			printf("channel not found requested = %s\n", p->arg3);
 			return packetServerF("Channel requested not found");
 		}
 		if(!checkUserExistance(p->arg4))
 		{
 			
-			printf("[director] no such user exists %s\n", p->arg4);
+			printf("no such user exists %s\n", p->arg4);
 			return packetServerF("No such user exists");
 		}
 
 		//check that he has access to the channel.
 		bool flag = checkAccessToChannel(req, p->arg1);
 		if(!flag){
-			printf("[director] user %s does not have access to %s\n", p->arg1, req->name);
+			printf("user %s does not have access to %s\n", p->arg1, req->name);
 			return packetServerF("Access denied for that channel");
 		}
 		//add user to the channel.
 		req->userlist = cons(user_constructor(p->arg4, ""), req->userlist);
-		printf("[director] added user %s to %s\n", p->arg4, req->name);
+		printf("added user %s to %s\n", p->arg4, req->name);
 		sprintf(buf, "added user %s to %s\n", p->arg4, req->name);
 		return packetServerS(buf);
 	}
@@ -183,28 +193,28 @@ packet AN_protocol_execute(packet* p)
 		//validateUser
 		if(!validateUser(p->arg1, p->arg2))
 		{
-			printf("[director] failed to validate user\n");
+			printf("failed to validate user\n");
 			return packetServerS("Failed to validate user");
 		}
 		//checkChannelExistance
 		channel* req = checkChannelExistance(p->arg3);
 		if(req == NULL)
 		{			
-			printf("[director] channel not found requested = %s\n", p->arg3);
+			printf("channel not found requested = %s\n", p->arg3);
 			return packetServerF("Channel requested not found");
 
 		}
 		//check user access to the channel.
 		if(!checkAccessToChannel(req, p->arg1))
 		{			
-			printf("[director] user %s does not have access to %s\n", p->arg1, req->name);
+			printf("user %s does not have access to %s\n", p->arg1, req->name);
 			return packetServerF("Access denied for that channel");
 		}
 		// memcpy(buf, p->body, p->length);
 		snprintf(buf,5+strlen(p->arg1)+p->length ,"[%s]\t %s", p->arg1, p->body);
 		int previousId = (req->messagelist == emptyList) ? -1 : (((message*)head(req->messagelist))->id);
 		req->messagelist = cons( message_constructor(++previousId, buf , user_constructor(p->arg1, "")) , req->messagelist);
-		printf("[director] msg = %s to %s\n", (((message*)(head(req->messagelist)))->text), req->name);
+		printf("msg = %s to %s\n", (((message*)(head(req->messagelist)))->text), req->name);
 		return packetServerS("Sent packet successfully");
 
 	}
@@ -214,21 +224,21 @@ packet AN_protocol_execute(packet* p)
 		//validateUser
 		if(!validateUser(p->arg1, p->arg2))
 		{
-			printf("[director] failed to validate user\n");
+			printf("failed to validate user\n");
 			return packetServerS("Failed to validate user");
 		}
 		//checkChannelExistance
 		channel* req = checkChannelExistance(p->arg3);
 		if(req == NULL)
 		{			
-			printf("[director] channel not found requested = %s\n", p->arg3);
+			printf("channel not found requested = %s\n", p->arg3);
 			return packetServerF("Channel requested not found");
 
 		}
 		//check user access to the channel.
 		if(!checkAccessToChannel(req, p->arg1))
 		{			
-			printf("[director] user %s does not have access to %s\n", p->arg1, req->name);
+			printf("user %s does not have access to %s\n", p->arg1, req->name);
 			return packetServerF("Access denied for that channel");
 		}
 		//no we have to give all the messages that are greater or equal to the requested one.
@@ -249,7 +259,7 @@ packet AN_protocol_execute(packet* p)
 	}
 	else
 	{
-		printf("[director] failed command\n");
+		printf("failed command\n");
 		return packetServerF("Failed Question");
 	}
 
